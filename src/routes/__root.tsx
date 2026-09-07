@@ -7,6 +7,7 @@ import Sidebar from "@/components/shared/Sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/features/auth/hooks/useAuth"
 import { MobileSidebarProvider } from "@/hooks/useMobileSidebar"
+import { SelectedLocationProvider } from "@/hooks/useSelectedLocation"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -56,10 +57,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <MobileSidebarProvider>
-          <HeadContent />
-          {children}
-          <RefreshPrompt />
-          <Toaster />
+          <SelectedLocationProvider>
+            <HeadContent />
+            {children}
+            <RefreshPrompt />
+            <Toaster />
+          </SelectedLocationProvider>
         </MobileSidebarProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -1,8 +1,10 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, Calendar, Database, Settings, Menu, X, type LucideIcon, User, LogOutIcon, Telescope } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Calendar, Database, LogOutIcon, Menu, Settings, Sun, Telescope, User, X } from "lucide-react";
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { LoginDialog } from "@/features/auth/components/LoginDialog";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import LocationPicker from "@/components/shared/LocationPicker";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useMobileSidebar } from "@/hooks/useMobileSidebar";
 
@@ -14,8 +16,8 @@ type NavItemProps = {
 
 const baseNavItems: Array<NavItemProps> = [
   { to: "/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/starfinder", icon: Telescope, label: "Starfinder" },
+  { to: "/", icon: Sun, label: "Today" },
+  { to: "/starfinder", icon: Telescope, label: "Explore" },
 ];
 
 const adminNavItems: Array<NavItemProps> = [
@@ -28,10 +30,16 @@ export default function Sidebar() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { isAuthenticated, isVerifying, username, role, logout } = useAuth();
   const { isMobileMenuOpen, closeMobileMenu } = useMobileSidebar();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const navigate = useNavigate();
   const navItems = role === "admin" ? [...baseNavItems, ...adminNavItems] : baseNavItems;
   const showLabels = !isCollapsed || isMobileMenuOpen;
   const gridColsClass = navItems.length === 5 ? "grid-cols-5" : "grid-cols-3";
+  // The location picker drives Today's and Calendar's data. Explore has its
+  // own independent place search (any location, not just this list), so it
+  // stays out of the sidebar there to avoid implying a connection that
+  // doesn't exist.
+  const showLocationPicker = pathname === "/" || pathname === "/calendar";
 
   function handleLogout() {
     logout();
@@ -58,29 +66,40 @@ export default function Sidebar() {
         className={`
           flex flex-col fixed left-0 top-0 bottom-16 md:bottom-0 bg-sidebar drop-shadow-sm
           text-sidebar-foreground transition-all duration-300 ease-in-out z-50 overflow-hidden
-          ${isMobileMenuOpen ? "w-48" : "w-0"}
+          ${isMobileMenuOpen ? "w-64" : "w-0"}
           ${isCollapsed ? "md:w-16" : "md:w-64"}
           md:overflow-visible
         `}
       >
-        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-          {/* Desktop icon-only/labeled toggle */}
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden md:inline-flex appearance-none px-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            {isCollapsed ? <Menu size={20} /> : <X size={20} />}
-          </button>
-          {/* Mobile drawer close button */}
-          <button
-            type="button"
-            onClick={closeMobileMenu}
-            aria-label="Close menu"
-            className="md:hidden appearance-none rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            <X size={20} />
-          </button>
+        <div className="flex items-start justify-between gap-2 border-b border-sidebar-border p-4">
+          {showLabels ? (
+            <div className="min-w-0">
+              <p className="truncate font-playfair-display text-lg leading-tight font-semibold">Panchangam</p>
+              <p className="truncate text-xs text-muted-foreground">Santhigiri Ashram</p>
+            </div>
+          ) : (
+            <div />
+          )}
+          <div className="flex shrink-0 items-center gap-1">
+            <ThemeToggle />
+            {/* Desktop icon-only/labeled toggle */}
+            <button
+              type="button"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="hidden md:inline-flex appearance-none px-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            >
+              {isCollapsed ? <Menu size={20} /> : <X size={20} />}
+            </button>
+            {/* Mobile drawer close button */}
+            <button
+              type="button"
+              onClick={closeMobileMenu}
+              aria-label="Close menu"
+              className="md:hidden appearance-none rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
         <nav className="mt-4">
@@ -90,9 +109,9 @@ export default function Sidebar() {
                 key={to}
                 to={to}
                 onClick={closeMobileMenu}
-                activeProps={{ className: "bg-sidebar-primary text-sidebar-primary-foreground" }}
+                activeProps={{ className: "bg-sidebar-primary text-sidebar-primary-foreground font-semibold" }}
                 className={`
-                  flex items-center gap-3 pl-3.5 py-3 m-2 rounded-md
+                  flex items-center gap-3 pl-3.5 py-3 m-2 rounded-full
                   transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
                 `}
               >
@@ -103,8 +122,8 @@ export default function Sidebar() {
           })}
         </nav>
 
-        <div className="w-full mt-auto p-2 border-t border-sidebar-border">
-          <ThemeToggle showLabel={showLabels} />
+        <div className="w-full mt-auto flex flex-col gap-2 p-2 border-t border-sidebar-border">
+          {showLocationPicker && <LocationPicker showLabel={showLabels} />}
           {isVerifying ? null : isAuthenticated ? (
             <button
               type="button"
@@ -156,7 +175,7 @@ export default function Sidebar() {
                     <span
                       className={`
                           flex items-center justify-center rounded-xl px-3 p-1 transition-colors
-                          ${isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}
+                          ${isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold" : ""}
                         `}
                     >
                       <Icon size={20} />

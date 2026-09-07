@@ -11,7 +11,7 @@
     --font-sans: 'Inter Variable', 'Inter', sans-serif;
     --font-playfair-display: 'Playfair Display Variable', 'Playfair Display', serif;
     --font-inter: 'Inter Variable', 'Inter', sans-serif;
-    
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -20,13 +20,13 @@
     --color-sidebar-primary: var(--sidebar-primary);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar: var(--sidebar);
-    
+
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
-    
+
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
@@ -45,7 +45,42 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    
+
+    /* Organic accent/neutral tint ramps — exposed as first-class Tailwind
+       color utilities (bg-accent-100, text-accent-700, bg-neutral-200, …)
+       alongside the semantic shadcn tokens above, for components that need
+       a specific tint step rather than the single semantic role. */
+    --color-neutral-100: var(--neutral-100);
+    --color-neutral-200: var(--neutral-200);
+    --color-neutral-300: var(--neutral-300);
+    --color-neutral-400: var(--neutral-400);
+    --color-neutral-500: var(--neutral-500);
+    --color-neutral-600: var(--neutral-600);
+    --color-neutral-700: var(--neutral-700);
+    --color-neutral-800: var(--neutral-800);
+    --color-neutral-900: var(--neutral-900);
+
+    --color-accent-100: var(--accent-100);
+    --color-accent-200: var(--accent-200);
+    --color-accent-300: var(--accent-300);
+    --color-accent-400: var(--accent-400);
+    --color-accent-500: var(--accent-500);
+    --color-accent-600: var(--accent-600);
+    --color-accent-700: var(--accent-700);
+    --color-accent-800: var(--accent-800);
+    --color-accent-900: var(--accent-900);
+
+    --color-accent-2: var(--accent-2);
+    --color-accent-2-100: var(--accent-2-100);
+    --color-accent-2-200: var(--accent-2-200);
+    --color-accent-2-300: var(--accent-2-300);
+    --color-accent-2-400: var(--accent-2-400);
+    --color-accent-2-500: var(--accent-2-500);
+    --color-accent-2-600: var(--accent-2-600);
+    --color-accent-2-700: var(--accent-2-700);
+    --color-accent-2-800: var(--accent-2-800);
+    --color-accent-2-900: var(--accent-2-900);
+
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -56,73 +91,143 @@
 }
 
 :root {
-    /* Sacred Serenity Palette mapped to Variables */
-    --background: #f2ecc9; /* Parchment */
-    --foreground: #1c1c17;
-    --card: #ece5c4;
-    --card-foreground: #1c1c17;
-    --popover: #f2ecc9;
-    --popover-foreground: #1c1c17;
-    --primary: #ff9933; /* Saffron */
-    --primary-foreground: #ffffff;
-    --secondary: #800000; /* Sattvic Red */
-    --secondary-foreground: #ffffff;
-    --muted: #e6e0bd;
-    --muted-foreground: #49483e;
-    --accent: #ff9933;
-    --accent-foreground: #ffffff;
+    /* Organic palette — terracotta + sage on a warm cream ground, replacing
+       the earlier Sacred Serenity (saffron/red) theme. Semantic shadcn roles
+       below are mapped from these so every component re-themes together. */
+    --neutral-100: #f9f4ed;
+    --neutral-200: #eee7db;
+    --neutral-300: #dcd3c4;
+    --neutral-400: #c0b6a5;
+    --neutral-500: #a19786;
+    --neutral-600: #82796a;
+    --neutral-700: #645c50;
+    --neutral-800: #474238;
+    --neutral-900: #2e2b25;
+
+    --accent-100: #fff2eb;
+    --accent-200: #ffe1d0;
+    --accent-300: #ffc6a5;
+    --accent-400: #f6a06b;
+    --accent-500: #d67f48;
+    --accent-600: #b2622d;
+    --accent-700: #8c491a;
+    --accent-800: #643312;
+    --accent-900: #402310;
+
+    --accent-2: #7a8a5e;
+    --accent-2-100: #f0fae1;
+    --accent-2-200: #e1eecc;
+    --accent-2-300: #ccdbb2;
+    --accent-2-400: #aebf92;
+    --accent-2-500: #8fa073;
+    --accent-2-600: #728157;
+    --accent-2-700: #56633f;
+    --accent-2-800: #3d472b;
+    --accent-2-900: #272e1b;
+
+    --background: #f5ead8; /* Organic --color-bg */
+    --foreground: #201e1d; /* Organic --color-text */
+    --card: #ebddc5; /* Organic --color-surface */
+    --card-foreground: #201e1d;
+    --popover: #ebddc5;
+    --popover-foreground: #201e1d;
+    --primary: #c67139; /* Organic --color-accent */
+    --primary-foreground: #f5ead8;
+    --secondary: #7a8a5e; /* Organic --color-accent-2 */
+    --secondary-foreground: #f5ead8;
+    --muted: var(--neutral-200);
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --accent: var(--primary);
+    --accent-foreground: var(--primary-foreground);
     --destructive: #800000;
-    --border: #b5ab8f;
-    --input: #b5ab8f;
-    --ring: #ff9933;
+    --border: color-mix(in srgb, #201e1d 16%, transparent);
+    --input: color-mix(in srgb, #201e1d 16%, transparent);
+    --ring: var(--primary);
 
-    --radius: 0.5rem; /* 8px */
+    --radius: 0.75rem; /* cards (rounded-xl) land close to Organic's 16px card radius */
 
-    --sidebar: #ece5c4;
-    --sidebar-foreground: #1c1c17;
-    --sidebar-primary: #ff9933;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #e0dab8;
-    --sidebar-accent-foreground: #ff9933;
-    --sidebar-border: #b5ab8f;
-    --sidebar-ring: #ff9933;
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--accent-200);
+    --sidebar-primary-foreground: var(--accent-900);
+    --sidebar-accent: var(--neutral-200);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--primary);
 
-    --chart-1: #ff9933;
-    --chart-2: #800000;
-    --chart-3: #e68a2e;
-    --chart-4: #660000;
-    --chart-5: #7a786a;
+    --chart-1: var(--accent-500);
+    --chart-2: var(--accent-2-500);
+    --chart-3: var(--accent-700);
+    --chart-4: var(--accent-2-700);
+    --chart-5: var(--neutral-600);
 }
 
 .dark {
-    /* Dark mode variants for Sacred Serenity */
-    --background: #1c1c17;
-    --foreground: #fbfbe2;
-    --card: #2b2b24;
-    --card-foreground: #fbfbe2;
-    --popover: #1c1c17;
-    --popover-foreground: #fbfbe2;
-    --primary: #ff9933;
-    --primary-foreground: #1c1c17;
-    --secondary: #e68a2e;
-    --secondary-foreground: #1c1c17;
-    --muted: #49483e;
-    --muted-foreground: #dbdcc3;
-    --accent: #ff9933;
-    --accent-foreground: #1c1c17;
+    /* Organic dark theme — warm near-black ground, brightened terracotta/sage. */
+    --neutral-100: #241e17;
+    --neutral-200: #2e271d;
+    --neutral-300: #3c3325;
+    --neutral-400: #544838;
+    --neutral-500: #6f6250;
+    --neutral-600: #8d7f6a;
+    --neutral-700: #ab9d87;
+    --neutral-800: #cabfab;
+    --neutral-900: #f1e4d3;
+
+    --accent-100: #33231a;
+    --accent-200: #432c1e;
+    --accent-300: #623b23;
+    --accent-400: #8a4f2a;
+    --accent-500: #dd8a52;
+    --accent-600: #e69c69;
+    --accent-700: #efb388;
+    --accent-800: #f7cead;
+    --accent-900: #fce7d3;
+
+    --accent-2: #7a8a5e;
+    --accent-2-100: #232a19;
+    --accent-2-200: #2b3420;
+    --accent-2-300: #3c482c;
+    --accent-2-400: #546440;
+    --accent-2-500: #96a879;
+    --accent-2-600: #aebd94;
+    --accent-2-700: #c6d1af;
+    --accent-2-800: #dee5c9;
+    --accent-2-900: #f0f4e6;
+
+    --background: #1b1611;
+    --foreground: #f1e4d3;
+    --card: #241e17;
+    --card-foreground: #f1e4d3;
+    --popover: #241e17;
+    --popover-foreground: #f1e4d3;
+    --primary: #c67139;
+    --primary-foreground: #1b1611;
+    --secondary: #7a8a5e;
+    --secondary-foreground: #1b1611;
+    --muted: var(--neutral-200);
+    --muted-foreground: color-mix(in srgb, var(--foreground) 55%, transparent);
+    --accent: var(--primary);
+    --accent-foreground: var(--primary-foreground);
     --destructive: #660000;
-    --border: #49483e;
-    --input: #49483e;
-    --ring: #ff9933;
-    
-    --sidebar: #2b2b24;
-    --sidebar-foreground: #fbfbe2;
-    --sidebar-primary: #ff9933;
-    --sidebar-primary-foreground: #1c1c17;
-    --sidebar-accent: #49483e;
-    --sidebar-accent-foreground: #fbfbe2;
-    --sidebar-border: #49483e;
-    --sidebar-ring: #ff9933;
+    --border: color-mix(in srgb, #f1e4d3 16%, transparent);
+    --input: color-mix(in srgb, #f1e4d3 16%, transparent);
+    --ring: var(--primary);
+
+    --sidebar: var(--card);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--accent-200);
+    --sidebar-primary-foreground: var(--accent-900);
+    --sidebar-accent: var(--neutral-200);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--primary);
+
+    --chart-1: var(--accent-500);
+    --chart-2: var(--accent-2-500);
+    --chart-3: var(--accent-700);
+    --chart-4: var(--accent-2-700);
+    --chart-5: var(--neutral-600);
 }
 
 

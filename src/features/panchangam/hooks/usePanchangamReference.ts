@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+  getLocationsReference,
   getMasaReference,
   getNakshatraReference,
   getSanthigiriEvents,
@@ -44,6 +45,16 @@ export function useSanthigiriEvents() {
   return useQuery({
     queryKey,
     queryFn: () => getSanthigiriEvents((data) => queryClient.setQueryData(queryKey, data)),
+    staleTime: REFERENCE_STALE_TIME,
+  })
+}
+
+export function useLocationsReference() {
+  const queryClient = useQueryClient()
+  const queryKey = ["locations-reference"]
+  return useQuery({
+    queryKey,
+    queryFn: () => getLocationsReference((data) => queryClient.setQueryData(queryKey, data)),
     staleTime: REFERENCE_STALE_TIME,
   })
 }

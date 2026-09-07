@@ -115,7 +115,7 @@ function PanchangamDayButton({ day, modifiers, className, children: _children, .
         {day.date.getDate()}
       </p>
       <div className={cn("flex items-baseline justify-between w-full min-w-0 gap-1 pb-1 px-1 mt-auto", isNeighbouringMonth && "opacity-40")}>
-        <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-blue-600 shrink-0">{dateData?.kv.kv_day}</p>
+        <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-muted-foreground shrink-0">{dateData?.kv.kv_day}</p>
         <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-right truncate">{dateData?.nakshatra.ml}</p>
       </div>
     </CalendarDayButton>
@@ -197,6 +197,14 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
               ))}
             </SelectContent>
           </Select>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => ctx?.setActiveMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            This month
+          </Button>
         </div>
         <Button
           variant="ghost"

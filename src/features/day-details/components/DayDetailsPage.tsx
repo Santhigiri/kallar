@@ -1,4 +1,4 @@
-import { addDays } from "date-fns";
+import { addDays, isToday as isTodayFn } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import SunriseSunsetCard from "./SunriseSunsetCard";
@@ -9,12 +9,13 @@ import { CompactTransitionRowSkeleton } from "./CompactTransitionRowSkeleton";
 import UpcomingEventsCard from "./UpcomingEventsCard";
 import UpcomingEventsCardSkeleton from "./UpcomingEventsCardSkeleton";
 import GuruvaniCard from "./GuruvaniCard";
+import MalayalamDateCard from "./MalayalamDateCard";
+import MalayalamDateCardSkeleton from "./MalayalamDateCardSkeleton";
 import type { DayButton } from "react-day-picker";
 import type { ComponentProps } from "react";
-import DateHeaderSkeleton from "@/features/panchangam/components/DateHeaderSkeleton";
-import DateHeader from "@/features/panchangam/components/DateHeader";
 import TopAppBar from "@/components/shared/TopAppBar";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useHomePanchangam } from "@/features/day-details/hooks/useHomePanchangam";
@@ -48,89 +49,129 @@ export default function DayDetailsPage() {
   const { activeDate, setActiveDate, activeDateData, upcomingEvents, isLoading } = useHomePanchangam();
   const { sunrise, sunset, timeZone } = useLocalSunriseSunset(activeDate);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const isToday = isTodayFn(activeDate);
 
   return (
     <div className="flex flex-col items-stretch">
-      <TopAppBar
-        title="Daily Panchangam"
-        actions={
-          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Pick a date">
-                <CalendarIcon />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-auto p-0"
-              align="end"
-              onOpenAutoFocus={(event) => event.preventDefault()}
-            >
-              <Calendar
-                mode="single"
-                captionLayout="dropdown"
-                selected={activeDate}
-                defaultMonth={activeDate}
-                startMonth={CALENDAR_START_DATE}
-                endMonth={CALENDAR_END_DATE}
-                disabled={(date) =>
-                  date < CALENDAR_START_DATE || date > CALENDAR_END_DATE
-                }
-                onSelect={(date) => {
-                  if (date) {
-                    setActiveDate(date);
-                    setDatePickerOpen(false);
-                  }
-                }}
-                classNames={{
-                  today: "rounded-lg bg-primary text-primary-foreground font-semibold data-[selected=true]:bg-transparent",
-                }}
-                components={{
-                  DayButton: DatePickerDayButton,
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-        }
-      />
+      <TopAppBar title="Today" />
 
-      <div className="grid grid-cols-2 justify-items-stretch gap-2">
+      <div className="flex flex-col gap-4">
 
-        <div className="col-span-2">
-          <div className="flex flex-row justify-center items-center">
-            <ChevronLeft
-              className="w-8 h-8 cursor-pointer"
-              onClick={() => setActiveDate(addDays(activeDate, -1))}
-            />
-            <div className="flex-1">
-              {activeDateData ? (
-                <DateHeader
-                  date={activeDate}
-                  kv_date={activeDateData.kv}
-                />
-              ) : (
-                <DateHeaderSkeleton />
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-playfair-display text-2xl leading-tight font-semibold md:text-3xl">
+                {activeDate.toLocaleDateString("en-IN", { weekday: "long" })}
+              </h2>
+              {isToday && (
+                <span className="shrink-0 rounded-full bg-accent-100 px-2.5 py-0.5 text-xs font-medium text-accent-800">
+                  Today
+                </span>
               )}
             </div>
-            <ChevronRight
-              className="w-8 h-8 cursor-pointer"
+            {activeDateData ? (
+              <p className="mt-1 truncate text-sm text-muted-foreground">
+                {activeDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                {" · Kollavarsham "}
+                {activeDateData.kv.kv_day} {activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
+              </p>
+            ) : (
+              <Skeleton className="mt-2 h-4 w-48" />
+            )}
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Previous day"
+              onClick={() => setActiveDate(addDays(activeDate, -1))}
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              variant="ghost"
+              className="hidden md:inline-flex"
+              onClick={() => setActiveDate(new Date())}
+            >
+              Today
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Next day"
               onClick={() => setActiveDate(addDays(activeDate, 1))}
-            />
+            >
+              <ChevronRight />
+            </Button>
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Pick a date">
+                  <CalendarIcon />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0"
+                align="end"
+                onOpenAutoFocus={(event) => event.preventDefault()}
+              >
+                <Calendar
+                  mode="single"
+                  captionLayout="dropdown"
+                  selected={activeDate}
+                  defaultMonth={activeDate}
+                  startMonth={CALENDAR_START_DATE}
+                  endMonth={CALENDAR_END_DATE}
+                  disabled={(date) =>
+                    date < CALENDAR_START_DATE || date > CALENDAR_END_DATE
+                  }
+                  onSelect={(date) => {
+                    if (date) {
+                      setActiveDate(date);
+                      setDatePickerOpen(false);
+                    }
+                  }}
+                  classNames={{
+                    today: "rounded-lg bg-primary text-primary-foreground font-semibold data-[selected=true]:bg-transparent",
+                  }}
+                  components={{
+                    DayButton: DatePickerDayButton,
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
 
-        <div className="col-span-2">
-          <GuruvaniCard />
-        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-        <div className="col-span-2">
+          <div className="md:col-span-2">
+            <GuruvaniCard />
+          </div>
+
+          {activeDateData ? (
+            <MalayalamDateCard
+              thithi={activeDateData.thithi}
+              thithiTransitions={activeDateData.thithi_transitions}
+              nakshatra={activeDateData.nakshatra}
+              nakshatraTransitions={activeDateData.nakshatra_transitions}
+              kv={activeDateData.kv}
+            />
+          ) : (
+            <MalayalamDateCardSkeleton />
+          )}
+
           {sunrise && sunset ? (
-            <SunriseSunsetCard sunrise={sunrise} sunset={sunset} timeZone={timeZone} />
+            <SunriseSunsetCard
+              sunrise={sunrise}
+              sunset={sunset}
+              timeZone={timeZone}
+              nazhika={activeDateData?.nazhika_from_sunrise}
+            />
           ) : (
             <SunriseSunsetCardSkeleton />
           )}
-        </div>
 
-        <div className="col-span-2">
           {activeDateData ? (
             <ThithiTransitionCard
               transitions={activeDateData.thithi_transitions}
@@ -139,9 +180,7 @@ export default function DayDetailsPage() {
           ) : (
             <CompactTransitionRowSkeleton />
           )}
-        </div>
 
-        <div className="col-span-2">
           {activeDateData ? (
             <NakshatraTransitionCard
               transitions={activeDateData.nakshatra_transitions}
@@ -150,14 +189,14 @@ export default function DayDetailsPage() {
           ) : (
             <CompactTransitionRowSkeleton />
           )}
-        </div>
 
-        <div className="col-span-2">
-          {isLoading ? (
-            <UpcomingEventsCardSkeleton />
-          ) : (
-            <UpcomingEventsCard events={upcomingEvents} />
-          )}
+          <div className="md:col-span-2">
+            {isLoading ? (
+              <UpcomingEventsCardSkeleton />
+            ) : (
+              <UpcomingEventsCard events={upcomingEvents} />
+            )}
+          </div>
         </div>
       </div>
     </div>

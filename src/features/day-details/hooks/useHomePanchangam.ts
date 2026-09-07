@@ -7,8 +7,7 @@ import { useReferenceMaps } from "@/features/panchangam/hooks/useReferenceMaps";
 import { dateToKey } from "@/lib/date";
 import { enrichPanchangamDay } from "@/features/panchangam/lib/enrichPanchangamData";
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants";
-
-const LOCATION = "tvm"
+import { useSelectedLocation } from "@/hooks/useSelectedLocation";
 
 // How far ahead to scan for "upcoming events" — long enough to surface the
 // next recurring observance (Pournami etc.), short enough to stay relevant
@@ -23,6 +22,7 @@ export type UpcomingEvent = {
 
 export function useHomePanchangam(initialActiveDate = new Date()) {
   const [activeDate, setActiveDate] = useState<Date>(initialActiveDate);
+  const { locationCode } = useSelectedLocation()
   const year = activeDate.getFullYear()
   const queryClient = useQueryClient()
 
@@ -30,8 +30,8 @@ export function useHomePanchangam(initialActiveDate = new Date()) {
   const nextYear = year + 1
   const needsNextYear = windowEndYear > year && nextYear <= CALENDAR_END_DATE.getFullYear()
 
-  const yearQueryKey = ["panchangam-year-v1", year, LOCATION]
-  const nextYearQueryKey = ["panchangam-year-v1", nextYear, LOCATION]
+  const yearQueryKey = ["panchangam-year-v1", year, locationCode]
+  const nextYearQueryKey = ["panchangam-year-v1", nextYear, locationCode]
 
   // staleTime: 0 — always revalidate on mount/focus; the yearly endpoint is
   // ETag-validated, and getPanchangamYear resolves instantly from the cached
@@ -39,7 +39,7 @@ export function useHomePanchangam(initialActiveDate = new Date()) {
   const yearQuery = useQuery({
     queryKey: yearQueryKey,
     queryFn: () =>
-      getPanchangamYear(year, LOCATION, (data) => queryClient.setQueryData(yearQueryKey, data)),
+      getPanchangamYear(year, locationCode, (data) => queryClient.setQueryData(yearQueryKey, data)),
     staleTime: 0,
     enabled: year >= CALENDAR_START_DATE.getFullYear() && year <= CALENDAR_END_DATE.getFullYear(),
   })
@@ -50,7 +50,7 @@ export function useHomePanchangam(initialActiveDate = new Date()) {
   const nextYearQuery = useQuery({
     queryKey: nextYearQueryKey,
     queryFn: () =>
-      getPanchangamYear(nextYear, LOCATION, (data) =>
+      getPanchangamYear(nextYear, locationCode, (data) =>
         queryClient.setQueryData(nextYearQueryKey, data)
       ),
     staleTime: 0,

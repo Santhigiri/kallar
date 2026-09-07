@@ -12,7 +12,7 @@ export default function GuruvaniCard() {
   const [open, setOpen] = useState(false)
 
   return (
-    <Card className="border-l-4 border-l-primary rounded-md py-3">
+    <Card className="rounded-md py-3">
       <CardContent className="flex flex-col gap-1 px-4">
         <p className="font-semibold text-xs text-muted-foreground">GURUVANI</p>
         {isLoading && (
@@ -33,7 +33,7 @@ export default function GuruvaniCard() {
             </p>
             <CollapsibleContent className="flex flex-col gap-2 pt-2">
               <Separator />
-              <p className="font-inter text-lg text-muted-foreground">{data.text_ml}</p>
+              <p className="font-inter text-sm text-muted-foreground md:text-[15px]">{data.text_ml}</p>
             </CollapsibleContent>
             <CollapsibleTrigger className="mt-1 flex items-center gap-1 self-start font-inter text-xs font-medium text-primary">
               {open ? "Show less" : "Read full · മലയാളം"}

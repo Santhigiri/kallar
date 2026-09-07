@@ -1,7 +1,9 @@
 import * as z from "zod"
 import { masa, nakshatra, thithi } from "../schemas/panchangamData"
+import { locationInfo } from "../schemas/location"
 import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
 import type { Masa, Nakshatra, Thithi } from "../schemas/panchangamData"
+import type { LocationInfo } from "../schemas/location"
 import { santhigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 
@@ -25,4 +27,8 @@ export function getSanthigiriEvents(onBackgroundUpdate?: (data: Array<Santhigiri
 
 export function getMasaReference(onBackgroundUpdate?: (data: Array<Masa>) => void) {
   return fetchReference("masa", z.array(masa), onBackgroundUpdate)
+}
+
+export function getLocationsReference(onBackgroundUpdate?: (data: Array<LocationInfo>) => void) {
+  return fetchReference("locations", z.array(locationInfo), onBackgroundUpdate)
 }
