@@ -7,7 +7,10 @@ import {
   santhigiriEventGenerateProgress,
   santhigiriEventGenerateResult,
 } from "@/features/santhigiri-events/schemas/santhigiriEvent"
+import { ConflictError } from "@/features/santhigiri-events/api/santhigiriEvents"
 import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
+import { useActiveGenerationJob } from "@/features/generation-jobs/hooks/useActiveGenerationJob"
+import { ActiveJobBanner } from "@/features/generation-jobs/components/ActiveJobBanner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -36,6 +39,9 @@ const YEAR_OPTIONS = Array.from(
 
 const MAX_YEAR_SPAN = 15
 
+// Mirrors `SINGLE_EVENT_JOB_TYPE` in the backend's `features/santhigiri_events/router.py`.
+const EVENT_OCCURRENCES_JOB_TYPE = "event_occurrences"
+
 type GenerateOccurrencesDialogProps = {
   event: SanthigiriEvent | null
   onOpenChange: (open: boolean) => void
@@ -56,7 +62,22 @@ export function GenerateOccurrencesDialog({
     job?.status === "running" ? santhigiriEventGenerateProgress.safeParse(job.progress).data : undefined
   const result =
     job?.status === "succeeded" ? santhigiriEventGenerateResult.safeParse(job.result).data : undefined
-  const isGenerating = generateMutation.isPending || job?.status === "running"
+
+  // Finds a job already running — from this dialog reopened, another admin,
+  // or the panchangam tab — so its progress shows instead of a static
+  // "already running" note. Only polled while we aren't tracking our own job.
+  const activeJobQuery = useActiveGenerationJob(event !== null && jobId === null)
+  const activeJob = activeJobQuery.data ?? null
+  const foreignJob = activeJob && activeJob.job_type !== EVENT_OCCURRENCES_JOB_TYPE ? activeJob : null
+  const foreignJobRunning = foreignJob !== null
+
+  useEffect(() => {
+    if (jobId === null && activeJob?.job_type === EVENT_OCCURRENCES_JOB_TYPE) {
+      setJobId(activeJob.id)
+    }
+  }, [jobId, activeJob])
+
+  const isGenerating = generateMutation.isPending || job?.status === "running" || foreignJobRunning
 
   const { reset: resetGenerateMutation } = generateMutation
   useEffect(() => {
@@ -138,7 +159,8 @@ export function GenerateOccurrencesDialog({
           <FieldError>Year range too large (max {MAX_YEAR_SPAN} years).</FieldError>
         )}
 
-        {isGenerating && (
+        {foreignJob && <ActiveJobBanner job={foreignJob} />}
+        {!foreignJobRunning && isGenerating && (
           <div className="flex flex-col gap-1">
             {progress ? (
               <>
@@ -172,7 +194,7 @@ export function GenerateOccurrencesDialog({
           </div>
         )}
 
-        {generateMutation.isError && (
+        {generateMutation.isError && !foreignJobRunning && (
           <FieldError>
             {generateMutation.error instanceof Error
               ? generateMutation.error.message
@@ -201,7 +223,12 @@ export function GenerateOccurrencesDialog({
                   setJobId(null)
                   generateMutation.mutate(
                     { eventId: event.id, startYear, endYear },
-                    { onSuccess: (started) => setJobId(started.job_id) }
+                    {
+                      onSuccess: (started) => setJobId(started.job_id),
+                      onError: (error) => {
+                        if (error instanceof ConflictError) activeJobQuery.refetch()
+                      },
+                    }
                   )
                 }
               }}
