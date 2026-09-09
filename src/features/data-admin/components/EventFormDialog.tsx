@@ -37,12 +37,14 @@ function NullableReferenceSelect({
   onChange,
   isLoading,
   options,
+  showNoneOption = true,
 }: {
   id: string
   value: string
   onChange: (value: string) => void
   isLoading: boolean
   options: Array<{ id: number | string; label: string }>
+  showNoneOption?: boolean
 }) {
   return (
     <Select
@@ -53,7 +55,7 @@ function NullableReferenceSelect({
         <SelectValue placeholder={isLoading ? "Loading..." : "None"} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE}>None</SelectItem>
+        {showNoneOption && <SelectItem value={NONE}>None</SelectItem>}
         {options.map((option) => (
           <SelectItem key={option.id} value={String(option.id)}>
             {option.label}
@@ -377,6 +379,7 @@ export function EventFormDialog({
                   value={form.chandra_masa_month}
                   onChange={(value) => set("chandra_masa_month", value)}
                   isLoading={chandraMasaReference.isLoading}
+                  showNoneOption={false}
                   options={(chandraMasaReference.data ?? []).map((m) => ({
                     id: m.id,
                     label: `${m.en} (${m.ml})`,
