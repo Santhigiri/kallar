@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  useChandraMasaReference,
   useMasaReference,
   useNakshatraReference,
   useSanthigiriEvents,
@@ -73,6 +74,8 @@ type FormState = {
   ml_day: string
   ml_month: string
   ml_year: string
+  chandra_masa_day: string
+  chandra_masa_month: string
   en_day: string
   en_month: string
   en_year: string
@@ -109,6 +112,8 @@ const EMPTY_FORM: FormState = {
   ml_day: "",
   ml_month: "",
   ml_year: "",
+  chandra_masa_day: "",
+  chandra_masa_month: "",
   en_day: "",
   en_month: "",
   en_year: "",
@@ -129,6 +134,8 @@ function toFormState(event: SanthigiriEventDetail): FormState {
     ml_day: event.ml_day?.toString() ?? "",
     ml_month: event.ml_month?.toString() ?? "",
     ml_year: event.ml_year?.toString() ?? "",
+    chandra_masa_day: event.chandra_masa_day?.toString() ?? "",
+    chandra_masa_month: event.chandra_masa_month?.toString() ?? "",
     en_day: event.en_day?.toString() ?? "",
     en_month: event.en_month?.toString() ?? "",
     en_year: event.en_year?.toString() ?? "",
@@ -166,6 +173,8 @@ function toFormValues(form: FormState): SanthigiriEventFormValues {
     ml_day: toNullableInt(form.ml_day),
     ml_month: toNullableInt(form.ml_month),
     ml_year: toNullableInt(form.ml_year),
+    chandra_masa_day: toNullableInt(form.chandra_masa_day),
+    chandra_masa_month: toNullableInt(form.chandra_masa_month),
     en_day: toNullableInt(form.en_day),
     en_month: toNullableInt(form.en_month),
     en_year: toNullableInt(form.en_year),
@@ -197,6 +206,7 @@ export function EventFormDialog({
   const nakshatraReference = useNakshatraReference()
   const thithiReference = useThithiReference()
   const masaReference = useMasaReference()
+  const chandraMasaReference = useChandraMasaReference()
   const santhigiriEvents = useSanthigiriEvents()
 
   useEffect(() => {
@@ -346,6 +356,31 @@ export function EventFormDialog({
                   type="number"
                   value={form.ml_year}
                   onChange={(e) => set("ml_year", e.target.value)}
+                />
+              </Field>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor="event-chandra-masa-day">Lunar day</FieldLabel>
+                <Input
+                  id="event-chandra-masa-day"
+                  type="number"
+                  value={form.chandra_masa_day}
+                  onChange={(e) => set("chandra_masa_day", e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="event-chandra-masa-month">Lunar month</FieldLabel>
+                <NullableReferenceSelect
+                  id="event-chandra-masa-month"
+                  value={form.chandra_masa_month}
+                  onChange={(value) => set("chandra_masa_month", value)}
+                  isLoading={chandraMasaReference.isLoading}
+                  options={(chandraMasaReference.data ?? []).map((m) => ({
+                    id: m.id,
+                    label: `${m.en} (${m.ml})`,
+                  }))}
                 />
               </Field>
             </div>

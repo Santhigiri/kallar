@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import {
+  getChandraMasaReference,
   getLocationsReference,
   getMasaReference,
   getNakshatraReference,
@@ -35,6 +36,16 @@ export function useMasaReference() {
   return useQuery({
     queryKey,
     queryFn: () => getMasaReference((data) => queryClient.setQueryData(queryKey, data)),
+    staleTime: REFERENCE_STALE_TIME,
+  })
+}
+
+export function useChandraMasaReference() {
+  const queryClient = useQueryClient()
+  const queryKey = ["chandra-masa-reference"]
+  return useQuery({
+    queryKey,
+    queryFn: () => getChandraMasaReference((data) => queryClient.setQueryData(queryKey, data)),
     staleTime: REFERENCE_STALE_TIME,
   })
 }
