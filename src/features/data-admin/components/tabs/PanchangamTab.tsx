@@ -4,8 +4,12 @@ import { CalendarIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { panchangamColumns } from "../columns"
 import type { DateRange } from "react-day-picker"
-import type { PanchangamGenerateProgress } from "@/features/panchangam/schemas/compactPanchangamData"
-import { generatePanchangam } from "@/features/panchangam/api/panchangamGeneration"
+import {
+  panchangamGenerateProgress,
+  panchangamGenerateResult,
+} from "@/features/panchangam/schemas/compactPanchangamData"
+import { startPanchangamGeneration } from "@/features/panchangam/api/panchangamGeneration"
+import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -46,21 +50,27 @@ export default function PanchangamTab() {
     LOCATION
   )
 
-  const [progress, setProgress] = useState<PanchangamGenerateProgress | null>(null)
   const [range, setRange] = useState<DateRange | undefined>(() => ({
     from: startOfMonth(new Date()),
     to: new Date(),
   }))
+  const [jobId, setJobId] = useState<string | null>(null)
 
   const generateMutation = useMutation({
     mutationFn: () => {
       if (!range?.from || !range.to) {
         throw new Error("Select a date range to generate.")
       }
-      setProgress(null)
-      return generatePanchangam(range.from, range.to, LOCATION, setProgress)
+      return startPanchangamGeneration(range.from, range.to, LOCATION)
     },
+    onSuccess: (started) => setJobId(started.job_id),
   })
+
+  const jobQuery = useGenerationJobStatus(jobId)
+  const job = jobQuery.data
+  const progress = job?.status === "running" ? panchangamGenerateProgress.safeParse(job.progress).data : undefined
+  const result = job?.status === "succeeded" ? panchangamGenerateResult.safeParse(job.result).data : undefined
+  const isGenerating = generateMutation.isPending || job?.status === "running"
 
   // The backend's monthly endpoint can include a few days that spill outside
   // the requested Gregorian month (e.g. Malayalam-calendar boundary days) —
@@ -105,10 +115,13 @@ export default function PanchangamTab() {
               </PopoverContent>
             </Popover>
             <Button
-              disabled={!isAdmin || generateMutation.isPending || !range?.from || !range.to}
-              onClick={() => generateMutation.mutate()}
+              disabled={!isAdmin || isGenerating || !range?.from || !range.to}
+              onClick={() => {
+                setJobId(null)
+                generateMutation.mutate()
+              }}
             >
-              {generateMutation.isPending ? "Generating..." : "Generate"}
+              {isGenerating ? "Generating..." : "Generate"}
             </Button>
             {!isAuthenticated && (
               <span className="text-sm text-muted-foreground">
@@ -122,7 +135,7 @@ export default function PanchangamTab() {
             )}
           </div>
 
-          {generateMutation.isPending && progress && (
+          {isGenerating && progress && (
             <div className="flex flex-col gap-1">
               <Progress value={progress.percent} />
               <span className="text-sm text-muted-foreground">
@@ -130,10 +143,9 @@ export default function PanchangamTab() {
               </span>
             </div>
           )}
-          {generateMutation.isSuccess && (
+          {result && (
             <p className="text-sm text-foreground">
-              Generated {generateMutation.data.count} day(s) from{" "}
-              {generateMutation.data.start_date} to {generateMutation.data.end_date}.
+              Generated {result.count} day(s) from {result.start_date} to {result.end_date}.
             </p>
           )}
           {generateMutation.isError && (
@@ -141,6 +153,11 @@ export default function PanchangamTab() {
               {generateMutation.error instanceof Error
                 ? generateMutation.error.message
                 : "Failed to generate panchangam data."}
+            </p>
+          )}
+          {job?.status === "failed" && (
+            <p className="text-sm text-destructive">
+              {job.error ?? "Failed to generate panchangam data."}
             </p>
           )}
         </CardContent>
