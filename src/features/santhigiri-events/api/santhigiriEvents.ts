@@ -1,12 +1,6 @@
-import {
-  santhigiriEventDetail,
-  santhigiriEventGenerateLine,
-} from "../schemas/santhigiriEvent"
-import type {
-  SanthigiriEventFormValues,
-  SanthigiriEventGenerateProgress,
-  SanthigiriEventGenerateResult,
-} from "../schemas/santhigiriEvent"
+import { santhigiriEventDetail } from "../schemas/santhigiriEvent"
+import type { SanthigiriEventFormValues } from "../schemas/santhigiriEvent"
+import { generationJobStarted } from "@/features/generation-jobs/schemas/generationJob"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
@@ -98,21 +92,21 @@ export async function deleteSanthigiriEvent(eventId: string) {
   await handleErrors(response)
 }
 
-export class SanthigiriEventGenerationError extends Error {}
-
-export async function generateSanthigiriEventOccurrences(
+// Starts a background occurrence-generation job and returns immediately
+// (202). Poll the returned job id via `useGenerationJobStatus` for progress
+// and the result.
+export async function startSanthigiriEventOccurrences(
   eventId: string,
   startYear: number,
-  endYear: number,
-  onProgress?: (progress: SanthigiriEventGenerateProgress) => void
-): Promise<SanthigiriEventGenerateResult> {
+  endYear: number
+) {
   const response = await fetch(
-    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences/stream`,
+    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences`,
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/x-ndjson",
+        Accept: "application/json",
       },
       credentials: "include",
       body: JSON.stringify({ start_year: startYear, end_year: endYear }),
@@ -120,44 +114,8 @@ export async function generateSanthigiriEventOccurrences(
   )
 
   await handleErrors(response)
-  if (!response.body) {
-    throw new Error("Failed to generate occurrences: empty response")
-  }
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ""
-  let result: SanthigiriEventGenerateResult | undefined
-
-  const handleLine = (line: string) => {
-    if (!line.trim()) return
-    const parsed = santhigiriEventGenerateLine.parse(JSON.parse(line))
-    if (parsed.type === "progress") {
-      onProgress?.(parsed)
-    } else if (parsed.type === "error") {
-      throw new SanthigiriEventGenerationError(parsed.detail)
-    } else {
-      result = parsed
-    }
-  }
-
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split("\n")
-    buffer = lines.pop() ?? ""
-    for (const line of lines) {
-      handleLine(line)
-    }
-  }
-  buffer += decoder.decode()
-  handleLine(buffer)
-
-  if (!result) {
-    throw new Error("Occurrence generation stream ended without a result")
-  }
-  return result
+  const json = await response.json()
+  return generationJobStarted.parseAsync(json)
 }
 
 export async function getSanthigiriEvent(eventId: string) {

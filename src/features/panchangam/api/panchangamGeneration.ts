@@ -1,7 +1,7 @@
 import { format } from "date-fns"
 import * as z from "zod"
-import { compactPanchangamData, panchangamGenerateLine } from "../schemas/compactPanchangamData"
-import type { PanchangamGenerateProgress, panchangamGenerateResult } from "../schemas/compactPanchangamData"
+import { compactPanchangamData } from "../schemas/compactPanchangamData"
+import { generationJobStarted } from "@/features/generation-jobs/schemas/generationJob"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
@@ -47,13 +47,28 @@ export function getPanchangamYear(
   )
 }
 
-export class PanchangamGenerationError extends Error {}
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "ConflictError"
+  }
+}
 
-export async function generatePanchangam(
+async function parseErrorDetail(response: Response, fallback: string) {
+  try {
+    const body = await response.json()
+    return typeof body.detail === "string" ? body.detail : fallback
+  } catch {
+    return fallback
+  }
+}
+
+// Starts a background generation job and returns immediately (202). Poll the
+// returned job id via `useGenerationJobStatus` for progress and the result.
+export async function startPanchangamGeneration(
   startDate: Date,
   endDate: Date,
-  location: string,
-  onProgress?: (progress: PanchangamGenerateProgress) => void
+  location: string
 ) {
   const response = await fetch(
     `${APP_BASE_URL}/api/v1/panchangam/generate?location=${location}`,
@@ -61,7 +76,7 @@ export async function generatePanchangam(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/x-ndjson",
+        Accept: "application/json",
       },
       credentials: "include",
       body: JSON.stringify({
@@ -73,45 +88,15 @@ export async function generatePanchangam(
 
   if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 403) throw new ForbiddenError()
+  if (response.status === 409) {
+    throw new ConflictError(
+      await parseErrorDetail(response, "A data-generation job is already running.")
+    )
+  }
   if (!response.ok) {
-    throw new Error("Failed to generate panchangam data")
-  }
-  if (!response.body) {
-    throw new Error("Failed to generate panchangam data: empty response")
+    throw new Error(await parseErrorDetail(response, "Failed to start panchangam generation"))
   }
 
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ""
-  let result: z.infer<typeof panchangamGenerateResult> | undefined
-
-  const handleLine = (line: string) => {
-    if (!line.trim()) return
-    const parsed = panchangamGenerateLine.parse(JSON.parse(line))
-    if (parsed.type === "progress") {
-      onProgress?.(parsed)
-    } else if (parsed.type === "error") {
-      throw new PanchangamGenerationError(parsed.detail)
-    } else {
-      result = parsed
-    }
-  }
-
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split("\n")
-    buffer = lines.pop() ?? ""
-    for (const line of lines) {
-      handleLine(line)
-    }
-  }
-  buffer += decoder.decode()
-  handleLine(buffer)
-
-  if (!result) {
-    throw new Error("Panchangam generation stream ended without a result")
-  }
-  return result
+  const json = await response.json()
+  return generationJobStarted.parseAsync(json)
 }

@@ -2,10 +2,12 @@ import { useEffect, useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
-import type {
-  SanthigiriEvent,
-  SanthigiriEventGenerateProgress,
+import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
+import {
+  santhigiriEventGenerateProgress,
+  santhigiriEventGenerateResult,
 } from "@/features/santhigiri-events/schemas/santhigiriEvent"
+import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -45,8 +47,16 @@ export function GenerateOccurrencesDialog({
 }: GenerateOccurrencesDialogProps) {
   const [startYear, setStartYear] = useState(() => new Date().getFullYear())
   const [endYear, setEndYear] = useState(() => new Date().getFullYear())
-  const [progress, setProgress] = useState<SanthigiriEventGenerateProgress | null>(null)
-  const generateMutation = useGenerateSanthigiriEventOccurrences(setProgress)
+  const [jobId, setJobId] = useState<string | null>(null)
+  const generateMutation = useGenerateSanthigiriEventOccurrences()
+
+  const jobQuery = useGenerationJobStatus(jobId)
+  const job = jobQuery.data
+  const progress =
+    job?.status === "running" ? santhigiriEventGenerateProgress.safeParse(job.progress).data : undefined
+  const result =
+    job?.status === "succeeded" ? santhigiriEventGenerateResult.safeParse(job.result).data : undefined
+  const isGenerating = generateMutation.isPending || job?.status === "running"
 
   const { reset: resetGenerateMutation } = generateMutation
   useEffect(() => {
@@ -54,7 +64,7 @@ export function GenerateOccurrencesDialog({
       const currentYear = new Date().getFullYear()
       setStartYear(currentYear)
       setEndYear(currentYear)
-      setProgress(null)
+      setJobId(null)
       resetGenerateMutation()
     }
   }, [event, resetGenerateMutation])
@@ -63,8 +73,8 @@ export function GenerateOccurrencesDialog({
   const rangeTooLarge = !rangeInvalid && endYear - startYear + 1 > MAX_YEAR_SPAN
 
   const handleCopyDates = () => {
-    if (!generateMutation.data) return
-    const text = Object.entries(generateMutation.data.occurrences)
+    if (!result) return
+    const text = Object.entries(result.occurrences)
       .flatMap(([, dates]) => dates)
       .sort()
       .map((date) => format(parseISO(date), "d MMMM yyyy"))
@@ -128,7 +138,7 @@ export function GenerateOccurrencesDialog({
           <FieldError>Year range too large (max {MAX_YEAR_SPAN} years).</FieldError>
         )}
 
-        {generateMutation.isPending && progress && (
+        {isGenerating && progress && (
           <div className="flex flex-col gap-1">
             <Progress value={progress.percent} />
             <span className="text-sm text-muted-foreground">
@@ -137,9 +147,9 @@ export function GenerateOccurrencesDialog({
           </div>
         )}
 
-        {generateMutation.isSuccess && (
+        {result && (
           <div className="max-h-64 overflow-y-auto text-sm text-foreground">
-            {Object.entries(generateMutation.data.occurrences).map(([year, dates]) => (
+            {Object.entries(result.occurrences).map(([year, dates]) => (
               <div key={year} className="mb-2">
                 <p className="mb-1 font-medium">
                   {year}: {dates.length === 0 ? "no occurrences" : `${dates.length} occurrence(s)`}
@@ -164,8 +174,12 @@ export function GenerateOccurrencesDialog({
           </FieldError>
         )}
 
+        {job?.status === "failed" && (
+          <FieldError>{job.error ?? "Failed to generate occurrences."}</FieldError>
+        )}
+
         <DialogFooter>
-          {generateMutation.isSuccess ? (
+          {result ? (
             <>
               <Button variant="outline" onClick={handleCopyDates}>
                 <Copy />
@@ -175,15 +189,18 @@ export function GenerateOccurrencesDialog({
             </>
           ) : (
             <Button
-              disabled={!event || generateMutation.isPending || rangeInvalid || rangeTooLarge}
+              disabled={!event || isGenerating || rangeInvalid || rangeTooLarge}
               onClick={() => {
                 if (event) {
-                  setProgress(null)
-                  generateMutation.mutate({ eventId: event.id, startYear, endYear })
+                  setJobId(null)
+                  generateMutation.mutate(
+                    { eventId: event.id, startYear, endYear },
+                    { onSuccess: (started) => setJobId(started.job_id) }
+                  )
                 }
               }}
             >
-              {generateMutation.isPending ? "Generating..." : "Generate"}
+              {isGenerating ? "Generating..." : "Generate"}
             </Button>
           )}
         </DialogFooter>
