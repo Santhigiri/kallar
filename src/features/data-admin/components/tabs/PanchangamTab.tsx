@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { format, parseISO, startOfMonth } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
@@ -8,8 +8,10 @@ import {
   panchangamGenerateProgress,
   panchangamGenerateResult,
 } from "@/features/panchangam/schemas/compactPanchangamData"
-import { startPanchangamGeneration } from "@/features/panchangam/api/panchangamGeneration"
+import { ConflictError, startPanchangamGeneration } from "@/features/panchangam/api/panchangamGeneration"
 import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
+import { useActiveGenerationJob } from "@/features/generation-jobs/hooks/useActiveGenerationJob"
+import { ActiveJobBanner } from "@/features/generation-jobs/components/ActiveJobBanner"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -28,6 +30,9 @@ import { usePanchangamMonth } from "@/features/data-admin/hooks/usePanchangamMon
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants"
 
 const LOCATION = "tvm"
+
+// Mirrors `JOB_TYPE` in the backend's `features/panchangam/generation_router.py`.
+const PANCHANGAM_JOB_TYPE = "panchangam_generate"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -56,6 +61,14 @@ export default function PanchangamTab() {
   }))
   const [jobId, setJobId] = useState<string | null>(null)
 
+  // Finds a job already running — from this tab reloaded, another admin, or
+  // the events tab — so its progress shows instead of a static "already
+  // running" note. Only polled while we aren't already tracking our own job.
+  const activeJobQuery = useActiveGenerationJob(isAdmin && jobId === null)
+  const activeJob = activeJobQuery.data ?? null
+  const foreignJob = activeJob && activeJob.job_type !== PANCHANGAM_JOB_TYPE ? activeJob : null
+  const foreignJobRunning = foreignJob !== null
+
   const generateMutation = useMutation({
     mutationFn: () => {
       if (!range?.from || !range.to) {
@@ -64,13 +77,23 @@ export default function PanchangamTab() {
       return startPanchangamGeneration(range.from, range.to, LOCATION)
     },
     onSuccess: (started) => setJobId(started.job_id),
+    onError: (error) => {
+      if (error instanceof ConflictError) activeJobQuery.refetch()
+    },
   })
 
   const jobQuery = useGenerationJobStatus(jobId)
   const job = jobQuery.data
   const progress = job?.status === "running" ? panchangamGenerateProgress.safeParse(job.progress).data : undefined
   const result = job?.status === "succeeded" ? panchangamGenerateResult.safeParse(job.result).data : undefined
-  const isGenerating = generateMutation.isPending || job?.status === "running"
+
+  useEffect(() => {
+    if (jobId === null && activeJob?.job_type === PANCHANGAM_JOB_TYPE) {
+      setJobId(activeJob.id)
+    }
+  }, [jobId, activeJob])
+
+  const isGenerating = generateMutation.isPending || job?.status === "running" || foreignJobRunning
 
   // The backend's monthly endpoint can include a few days that spill outside
   // the requested Gregorian month (e.g. Malayalam-calendar boundary days) —
@@ -135,7 +158,8 @@ export default function PanchangamTab() {
             )}
           </div>
 
-          {isGenerating && (
+          {foreignJob && <ActiveJobBanner job={foreignJob} />}
+          {!foreignJobRunning && isGenerating && (
             <div className="flex flex-col gap-1">
               {progress ? (
                 <>
@@ -154,7 +178,7 @@ export default function PanchangamTab() {
               Generated {result.count} day(s) from {result.start_date} to {result.end_date}.
             </p>
           )}
-          {generateMutation.isError && (
+          {generateMutation.isError && !foreignJobRunning && (
             <p className="text-sm text-destructive">
               {generateMutation.error instanceof Error
                 ? generateMutation.error.message

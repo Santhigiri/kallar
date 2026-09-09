@@ -24,3 +24,15 @@ export const generationJobStatus = z.object({
 })
 
 export type GenerationJobStatus = z.infer<typeof generationJobStatus>
+
+// A loose shape covering the fields every job type's progress payload happens
+// to share (`completed`/`total`/`percent`), for rendering progress on a job
+// whose specific type (and therefore full progress schema) isn't known to the
+// caller — e.g. a job of a different kind found running via `/active`.
+export const genericGenerationProgress = z.object({
+  completed: z.number().int(),
+  total: z.number().int(),
+  percent: z.number(),
+})
+
+export type GenericGenerationProgress = z.infer<typeof genericGenerationProgress>
