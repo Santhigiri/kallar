@@ -138,12 +138,18 @@ export function GenerateOccurrencesDialog({
           <FieldError>Year range too large (max {MAX_YEAR_SPAN} years).</FieldError>
         )}
 
-        {isGenerating && progress && (
+        {isGenerating && (
           <div className="flex flex-col gap-1">
-            <Progress value={progress.percent} />
-            <span className="text-sm text-muted-foreground">
-              {progress.completed}/{progress.total} years ({progress.year})
-            </span>
+            {progress ? (
+              <>
+                <Progress value={progress.percent} />
+                <span className="text-sm text-muted-foreground">
+                  {progress.completed}/{progress.total} years ({progress.year})
+                </span>
+              </>
+            ) : (
+              <span className="text-sm text-muted-foreground">Generating…</span>
+            )}
           </div>
         )}
 
