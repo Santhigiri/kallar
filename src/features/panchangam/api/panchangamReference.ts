@@ -29,6 +29,10 @@ export function getMasaReference(onBackgroundUpdate?: (data: Array<Masa>) => voi
   return fetchReference("masa", z.array(masa), onBackgroundUpdate)
 }
 
+export function getChandraMasaReference(onBackgroundUpdate?: (data: Array<Masa>) => void) {
+  return fetchReference("chandra-masa", z.array(masa), onBackgroundUpdate)
+}
+
 export function getLocationsReference(onBackgroundUpdate?: (data: Array<LocationInfo>) => void) {
   return fetchReference("locations", z.array(locationInfo), onBackgroundUpdate)
 }

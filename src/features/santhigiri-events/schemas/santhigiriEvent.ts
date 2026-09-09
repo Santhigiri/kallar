@@ -18,6 +18,8 @@ export const santhigiriEventDetail = z.object({
   ml_day: z.number().int().nullable(),
   ml_month: z.number().int().nullable(),
   ml_year: z.number().int().nullable(),
+  chandra_masa_day: z.number().int().nullable(),
+  chandra_masa_month: z.number().int().nullable(),
   en_day: z.number().int().nullable(),
   en_month: z.number().int().nullable(),
   en_year: z.number().int().nullable(),
