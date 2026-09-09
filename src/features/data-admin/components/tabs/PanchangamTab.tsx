@@ -135,12 +135,18 @@ export default function PanchangamTab() {
             )}
           </div>
 
-          {isGenerating && progress && (
+          {isGenerating && (
             <div className="flex flex-col gap-1">
-              <Progress value={progress.percent} />
-              <span className="text-sm text-muted-foreground">
-                {progress.completed}/{progress.total} days ({format(parseISO(progress.current_date), "d MMM")})
-              </span>
+              {progress ? (
+                <>
+                  <Progress value={progress.percent} />
+                  <span className="text-sm text-muted-foreground">
+                    {progress.completed}/{progress.total} days ({format(parseISO(progress.current_date), "d MMM")})
+                  </span>
+                </>
+              ) : (
+                <span className="text-sm text-muted-foreground">Generating…</span>
+              )}
             </div>
           )}
           {result && (
