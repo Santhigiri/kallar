@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select"
 import { useGenerateSanthigiriEventOccurrences } from "@/features/santhigiri-events/hooks/useSanthigiriEventMutations"
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants"
+import { getActiveGenerationJob } from "@/lib/http/generationJob"
 
 const YEAR_OPTIONS = Array.from(
   { length: CALENDAR_END_DATE.getFullYear() - CALENDAR_START_DATE.getFullYear() + 1 },
@@ -48,16 +49,37 @@ export function GenerateOccurrencesDialog({
   const [progress, setProgress] = useState<SanthigiriEventGenerateProgress | null>(null)
   const generateMutation = useGenerateSanthigiriEventOccurrences(setProgress)
 
-  const { reset: resetGenerateMutation } = generateMutation
+  const { reset: resetGenerateMutation, mutate: runGenerateMutation } = generateMutation
   useEffect(() => {
-    if (event) {
-      const currentYear = new Date().getFullYear()
-      setStartYear(currentYear)
-      setEndYear(currentYear)
-      setProgress(null)
-      resetGenerateMutation()
+    if (!event) return
+    const currentYear = new Date().getFullYear()
+    setStartYear(currentYear)
+    setEndYear(currentYear)
+    setProgress(null)
+    resetGenerateMutation()
+
+    // If an occurrence-generation job for THIS event is still running on the
+    // server (e.g. the dialog was reopened mid-run), pick up its progress —
+    // the job itself never stopped, only this dialog lost track of it.
+    let cancelled = false
+    getActiveGenerationJob()
+      .then((job) => {
+        if (
+          !cancelled &&
+          job &&
+          job.job_type === "event_occurrences" &&
+          job.params.event_id === event.id
+        ) {
+          runGenerateMutation({ resumeJobId: job.id })
+        }
+      })
+      .catch(() => {
+        // Best-effort recovery only — a failed check here shouldn't block the dialog.
+      })
+    return () => {
+      cancelled = true
     }
-  }, [event, resetGenerateMutation])
+  }, [event, resetGenerateMutation, runGenerateMutation])
 
   const rangeInvalid = endYear < startYear
   const rangeTooLarge = !rangeInvalid && endYear - startYear + 1 > MAX_YEAR_SPAN

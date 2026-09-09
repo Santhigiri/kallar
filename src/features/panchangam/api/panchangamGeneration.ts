@@ -1,8 +1,13 @@
 import { format } from "date-fns"
 import * as z from "zod"
-import { compactPanchangamData, panchangamGenerateLine } from "../schemas/compactPanchangamData"
-import type { PanchangamGenerateProgress, panchangamGenerateResult } from "../schemas/compactPanchangamData"
+import {
+  compactPanchangamData,
+  panchangamGenerateProgress,
+  panchangamGenerateResult,
+} from "../schemas/compactPanchangamData"
+import type { PanchangamGenerateProgress } from "../schemas/compactPanchangamData"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
+import { generationJobStarted, pollGenerationJob } from "@/lib/http/generationJob"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const compactPanchangamMonth = z.record(z.string(), compactPanchangamData)
@@ -49,6 +54,10 @@ export function getPanchangamYear(
 
 export class PanchangamGenerationError extends Error {}
 
+/** Start a panchangam-generation job and poll it to completion. The job runs
+ * on the server independent of this request/tab, so it keeps going (and can
+ * be resumed via `getActiveGenerationJob`) even if this call is abandoned —
+ * see `lib/http/generationJob.ts`. */
 export async function generatePanchangam(
   startDate: Date,
   endDate: Date,
@@ -61,7 +70,7 @@ export async function generatePanchangam(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/x-ndjson",
+        Accept: "application/json",
       },
       credentials: "include",
       body: JSON.stringify({
@@ -73,45 +82,24 @@ export async function generatePanchangam(
 
   if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 403) throw new ForbiddenError()
+  if (response.status === 409) {
+    throw new PanchangamGenerationError(
+      "A data-generation job is already running. Wait for it to finish."
+    )
+  }
   if (!response.ok) {
-    throw new Error("Failed to generate panchangam data")
-  }
-  if (!response.body) {
-    throw new Error("Failed to generate panchangam data: empty response")
+    throw new Error("Failed to start panchangam generation")
   }
 
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ""
-  let result: z.infer<typeof panchangamGenerateResult> | undefined
+  const { job_id } = generationJobStarted.parse(await response.json())
+  return resumePanchangamGeneration(job_id, onProgress)
+}
 
-  const handleLine = (line: string) => {
-    if (!line.trim()) return
-    const parsed = panchangamGenerateLine.parse(JSON.parse(line))
-    if (parsed.type === "progress") {
-      onProgress?.(parsed)
-    } else if (parsed.type === "error") {
-      throw new PanchangamGenerationError(parsed.detail)
-    } else {
-      result = parsed
-    }
-  }
-
-  for (;;) {
-    const { done, value } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split("\n")
-    buffer = lines.pop() ?? ""
-    for (const line of lines) {
-      handleLine(line)
-    }
-  }
-  buffer += decoder.decode()
-  handleLine(buffer)
-
-  if (!result) {
-    throw new Error("Panchangam generation stream ended without a result")
-  }
-  return result
+/** Resume polling an already-started job (e.g. one found via
+ * `getActiveGenerationJob` after a reload). */
+export function resumePanchangamGeneration(
+  jobId: string,
+  onProgress?: (progress: PanchangamGenerateProgress) => void
+): Promise<z.infer<typeof panchangamGenerateResult>> {
+  return pollGenerationJob(jobId, panchangamGenerateProgress, panchangamGenerateResult, onProgress)
 }

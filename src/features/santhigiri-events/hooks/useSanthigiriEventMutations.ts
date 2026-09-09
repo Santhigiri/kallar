@@ -7,6 +7,7 @@ import {
   createSanthigiriEvent,
   deleteSanthigiriEvent,
   generateSanthigiriEventOccurrences,
+  resumeSanthigiriEventOccurrences,
   updateSanthigiriEvent,
 } from "@/features/santhigiri-events/api/santhigiriEvents"
 
@@ -41,21 +42,19 @@ export function useGenerateSanthigiriEventOccurrences(
   onProgress?: (progress: SanthigiriEventGenerateProgress) => void
 ) {
   return useMutation({
-    mutationFn: ({
-      eventId,
-      startYear,
-      endYear,
-    }: {
-      eventId: string
-      startYear: number
-      endYear: number
-    }) =>
-      generateSanthigiriEventOccurrences(
-        eventId,
-        startYear,
-        endYear,
-        onProgress
-      ),
+    mutationFn: (
+      variables:
+        | { eventId: string; startYear: number; endYear: number }
+        | { resumeJobId: string }
+    ) =>
+      "resumeJobId" in variables
+        ? resumeSanthigiriEventOccurrences(variables.resumeJobId, onProgress)
+        : generateSanthigiriEventOccurrences(
+            variables.eventId,
+            variables.startYear,
+            variables.endYear,
+            onProgress
+          ),
   })
 }
 

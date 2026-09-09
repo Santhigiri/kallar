@@ -1,11 +1,15 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { format, parseISO, startOfMonth } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { panchangamColumns } from "../columns"
 import type { DateRange } from "react-day-picker"
 import type { PanchangamGenerateProgress } from "@/features/panchangam/schemas/compactPanchangamData"
-import { generatePanchangam } from "@/features/panchangam/api/panchangamGeneration"
+import {
+  generatePanchangam,
+  resumePanchangamGeneration,
+} from "@/features/panchangam/api/panchangamGeneration"
+import { getActiveGenerationJob } from "@/lib/http/generationJob"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -53,14 +57,38 @@ export default function PanchangamTab() {
   }))
 
   const generateMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (jobIdToResume?: string) => {
+      setProgress(null)
+      if (jobIdToResume) {
+        return resumePanchangamGeneration(jobIdToResume, setProgress)
+      }
       if (!range?.from || !range.to) {
         throw new Error("Select a date range to generate.")
       }
-      setProgress(null)
       return generatePanchangam(range.from, range.to, LOCATION, setProgress)
     },
   })
+  const { mutate: runGenerateMutation } = generateMutation
+
+  // If a panchangam-generation job is still running on the server (e.g. this
+  // page was reloaded, or the tab was closed and reopened, mid-run), pick up
+  // its progress instead of leaving the admin with no sign anything is
+  // happening — the job itself never stopped, only this tab lost track of it.
+  useEffect(() => {
+    let cancelled = false
+    getActiveGenerationJob()
+      .then((job) => {
+        if (!cancelled && job && job.job_type === "panchangam_generate") {
+          runGenerateMutation(job.id)
+        }
+      })
+      .catch(() => {
+        // Best-effort recovery only — a failed check here shouldn't block the tab.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [runGenerateMutation])
 
   // The backend's monthly endpoint can include a few days that spill outside
   // the requested Gregorian month (e.g. Malayalam-calendar boundary days) —
@@ -106,7 +134,7 @@ export default function PanchangamTab() {
             </Popover>
             <Button
               disabled={!isAdmin || generateMutation.isPending || !range?.from || !range.to}
-              onClick={() => generateMutation.mutate()}
+              onClick={() => generateMutation.mutate(undefined)}
             >
               {generateMutation.isPending ? "Generating..." : "Generate"}
             </Button>
