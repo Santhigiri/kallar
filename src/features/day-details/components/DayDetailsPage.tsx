@@ -100,6 +100,7 @@ export default function DayDetailsPage() {
             <Button
               variant="ghost"
               size="sm"
+              className="md:h-9 md:gap-1.5 md:rounded-md"
               onClick={() => setActiveDate(new Date())}
             >
               Today
