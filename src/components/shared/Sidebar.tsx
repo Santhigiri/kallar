@@ -48,6 +48,7 @@ export default function Sidebar() {
   // The mobile sidebar is a full-width sheet, not an icon rail — labels
   // always show there regardless of the desktop expand/collapse state.
   const showLabels = isMobile || state === "expanded";
+  const isCollapsed = !isMobile && state === "collapsed";
   const gridColsClass = navItems.length === 5 ? "grid-cols-5" : "grid-cols-3";
   // The location picker drives Today's and Calendar's data. Explore has its
   // own independent place search (any location, not just this list), so it
@@ -69,7 +70,7 @@ export default function Sidebar() {
             <p className="truncate text-xs text-muted-foreground">Santhigiri Ashram</p>
           </div>
           <div className="flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:flex-col">
-            <ThemeToggle />
+            {!isCollapsed && <ThemeToggle />}
             <SidebarTrigger />
           </div>
         </SidebarHeader>
@@ -99,6 +100,11 @@ export default function Sidebar() {
               <LocationPicker showLabel={showLabels} />
               <SidebarSeparator />
             </>
+          )}
+          {isCollapsed && (
+            <div className="flex justify-center">
+              <ThemeToggle />
+            </div>
           )}
           {isVerifying ? null : isAuthenticated ? (
             <SidebarMenu>
