@@ -3,7 +3,10 @@ import type { ReactNode } from "react"
 
 // The location code the app used before a picker existed — kept as the
 // default so existing users see no change until they pick somewhere else.
-const DEFAULT_LOCATION_CODE = "tvm"
+// Also the backend location panchangam data (thithi/nakshatra/etc.) is
+// always fetched for, since that's precomputed only for reference locations
+// and never for the ip-derived "Current Location" pseudo-entry.
+export const DEFAULT_LOCATION_CODE = "tvm"
 const STORAGE_KEY = "panchangam.location-code"
 
 function readStoredLocationCode(): string {
