@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { SanthigiriEventFormValues } from "@/features/santhigiri-events/schemas/santhigiriEvent"
+import type { SanthigiriEventGenerateStreamEvent } from "@/features/santhigiri-events/api/santhigiriEvents"
 import {
   createSanthigiriEvent,
   deleteSanthigiriEvent,
@@ -40,11 +41,13 @@ export function useGenerateSanthigiriEventOccurrences() {
       eventId,
       startYear,
       endYear,
+      onEvent,
     }: {
       eventId: string
       startYear: number
       endYear: number
-    }) => startSanthigiriEventOccurrences(eventId, startYear, endYear),
+      onEvent?: (event: SanthigiriEventGenerateStreamEvent) => void
+    }) => startSanthigiriEventOccurrences(eventId, startYear, endYear, onEvent),
   })
 }
 

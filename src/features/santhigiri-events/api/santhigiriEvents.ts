@@ -1,6 +1,9 @@
 import { santhigiriEventDetail } from "../schemas/santhigiriEvent"
-import type { SanthigiriEventFormValues } from "../schemas/santhigiriEvent"
+import type { SanthigiriEventFormValues,
+  SanthigiriEventGenerateProgress,
+  SanthigiriEventGenerateResult } from "../schemas/santhigiriEvent"
 import { generationJobStarted } from "@/features/generation-jobs/schemas/generationJob"
+import { jobStartedFromHeaders, readNdjsonLines } from "@/features/generation-jobs/api/generationJobs"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
@@ -92,13 +95,24 @@ export async function deleteSanthigiriEvent(eventId: string) {
   await handleErrors(response)
 }
 
-// Starts a background occurrence-generation job and returns immediately
-// (202). Poll the returned job id via `useGenerationJobStatus` for progress
-// and the result.
+export type SanthigiriEventGenerateStreamEvent =
+  | SanthigiriEventGenerateProgress
+  | SanthigiriEventGenerateResult
+  | { type: "error"; detail: string }
+
+// Starts an occurrence-generation job. The job's id/type are available as
+// soon as the response headers arrive (before the body starts streaming);
+// the run keeps going server-side even if this call's connection is later
+// lost, so the caller should track the returned job id via
+// `useGenerationJobStatus` regardless of whether it also passes `onEvent`.
+//
+// `onEvent`, if given, is called for each NDJSON progress/complete/error line
+// as it streams in — see `startPanchangamGeneration` for the same pattern.
 export async function startSanthigiriEventOccurrences(
   eventId: string,
   startYear: number,
-  endYear: number
+  endYear: number,
+  onEvent?: (event: SanthigiriEventGenerateStreamEvent) => void
 ) {
   const response = await fetch(
     `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences`,
@@ -106,7 +120,7 @@ export async function startSanthigiriEventOccurrences(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
+        Accept: "application/x-ndjson",
       },
       credentials: "include",
       body: JSON.stringify({ start_year: startYear, end_year: endYear }),
@@ -114,8 +128,24 @@ export async function startSanthigiriEventOccurrences(
   )
 
   await handleErrors(response)
-  const json = await response.json()
-  return generationJobStarted.parseAsync(json)
+  const started = await generationJobStarted.parseAsync({
+    ...jobStartedFromHeaders(response),
+    status: "running",
+  })
+
+  // Always drain the body, even without an `onEvent` listener — see
+  // `startPanchangamGeneration` for why (backpressure on an unread stream
+  // would otherwise stall the server's progress writes).
+  void readNdjsonLines(response, (line) => {
+    if (!onEvent) return
+    try {
+      onEvent(JSON.parse(line) as SanthigiriEventGenerateStreamEvent)
+    } catch {
+      // Ignore a malformed line rather than breaking the whole stream.
+    }
+  })
+
+  return started
 }
 
 export async function getSanthigiriEvent(eventId: string) {
