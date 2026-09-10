@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import type { SanthigiriEventFormValues } from "@/features/santhigiri-events/schemas/santhigiriEvent"
-import type { SanthigiriEventGenerateStreamEvent } from "@/features/santhigiri-events/api/santhigiriEvents"
+import type {
+  SanthigiriEventFormValues,
+  SanthigiriEventGenerateProgress,
+} from "@/features/santhigiri-events/schemas/santhigiriEvent"
 import {
   createSanthigiriEvent,
   deleteSanthigiriEvent,
-  startSanthigiriEventOccurrences,
+  generateSanthigiriEventOccurrences,
   updateSanthigiriEvent,
 } from "@/features/santhigiri-events/api/santhigiriEvents"
 
@@ -35,19 +37,25 @@ export function useUpdateSanthigiriEvent() {
   })
 }
 
-export function useGenerateSanthigiriEventOccurrences() {
+export function useGenerateSanthigiriEventOccurrences(
+  onProgress?: (progress: SanthigiriEventGenerateProgress) => void
+) {
   return useMutation({
     mutationFn: ({
       eventId,
       startYear,
       endYear,
-      onEvent,
     }: {
       eventId: string
       startYear: number
       endYear: number
-      onEvent?: (event: SanthigiriEventGenerateStreamEvent) => void
-    }) => startSanthigiriEventOccurrences(eventId, startYear, endYear, onEvent),
+    }) =>
+      generateSanthigiriEventOccurrences(
+        eventId,
+        startYear,
+        endYear,
+        onProgress
+      ),
   })
 }
 

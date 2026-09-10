@@ -1,18 +1,11 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { format, parseISO, startOfMonth } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { panchangamColumns } from "../columns"
 import type { DateRange } from "react-day-picker"
-import type { PanchangamGenerateStreamEvent } from "@/features/panchangam/api/panchangamGeneration"
-import {
-  panchangamGenerateProgress,
-  panchangamGenerateResult,
-} from "@/features/panchangam/schemas/compactPanchangamData"
-import { ConflictError, startPanchangamGeneration } from "@/features/panchangam/api/panchangamGeneration"
-import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
-import { useActiveGenerationJob } from "@/features/generation-jobs/hooks/useActiveGenerationJob"
-import { ActiveJobBanner } from "@/features/generation-jobs/components/ActiveJobBanner"
+import type { PanchangamGenerateProgress } from "@/features/panchangam/schemas/compactPanchangamData"
+import { generatePanchangam } from "@/features/panchangam/api/panchangamGeneration"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,9 +24,6 @@ import { usePanchangamMonth } from "@/features/data-admin/hooks/usePanchangamMon
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants"
 
 const LOCATION = "tvm"
-
-// Mirrors `JOB_TYPE` in the backend's `features/panchangam/generation_router.py`.
-const PANCHANGAM_JOB_TYPE = "panchangam_generate"
 
 const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
@@ -56,59 +46,21 @@ export default function PanchangamTab() {
     LOCATION
   )
 
+  const [progress, setProgress] = useState<PanchangamGenerateProgress | null>(null)
   const [range, setRange] = useState<DateRange | undefined>(() => ({
     from: startOfMonth(new Date()),
     to: new Date(),
   }))
-  const [jobId, setJobId] = useState<string | null>(null)
-  // Live progress pushed straight from the streamed response — updates
-  // faster than the 4s job-status poll while the tab stays open. It's purely
-  // a display accelerant: `jobQuery` below (backed by the DB-persisted job
-  // row) is still what drives resuming after a reload or a lost connection.
-  const [streamEvent, setStreamEvent] = useState<PanchangamGenerateStreamEvent | null>(null)
-
-  // Finds a job already running — from this tab reloaded, another admin, or
-  // the events tab — so its progress shows instead of a static "already
-  // running" note. Only polled while we aren't already tracking our own job.
-  const activeJobQuery = useActiveGenerationJob(isAdmin && jobId === null)
-  const activeJob = activeJobQuery.data ?? null
-  const foreignJob = activeJob && activeJob.job_type !== PANCHANGAM_JOB_TYPE ? activeJob : null
-  const foreignJobRunning = foreignJob !== null
 
   const generateMutation = useMutation({
     mutationFn: () => {
       if (!range?.from || !range.to) {
         throw new Error("Select a date range to generate.")
       }
-      return startPanchangamGeneration(range.from, range.to, LOCATION, setStreamEvent)
-    },
-    onSuccess: (started) => setJobId(started.job_id),
-    onError: (error) => {
-      if (error instanceof ConflictError) activeJobQuery.refetch()
+      setProgress(null)
+      return generatePanchangam(range.from, range.to, LOCATION, setProgress)
     },
   })
-
-  const jobQuery = useGenerationJobStatus(jobId)
-  const job = jobQuery.data
-  const streamProgress = streamEvent?.type === "progress" ? streamEvent : undefined
-  const streamResult = streamEvent?.type === "complete" ? streamEvent : undefined
-  const streamError = streamEvent?.type === "error" ? streamEvent.detail : undefined
-  const progress =
-    streamProgress ??
-    (job?.status === "running" ? panchangamGenerateProgress.safeParse(job.progress).data : undefined)
-  const result =
-    streamResult ??
-    (job?.status === "succeeded" ? panchangamGenerateResult.safeParse(job.result).data : undefined)
-
-  useEffect(() => {
-    if (jobId === null && activeJob?.job_type === PANCHANGAM_JOB_TYPE) {
-      setJobId(activeJob.id)
-    }
-  }, [jobId, activeJob])
-
-  const streamDone = streamResult !== undefined || streamError !== undefined
-  const isGenerating =
-    !streamDone && (generateMutation.isPending || job?.status === "running" || foreignJobRunning)
 
   // The backend's monthly endpoint can include a few days that spill outside
   // the requested Gregorian month (e.g. Malayalam-calendar boundary days) —
@@ -153,14 +105,10 @@ export default function PanchangamTab() {
               </PopoverContent>
             </Popover>
             <Button
-              disabled={!isAdmin || isGenerating || !range?.from || !range.to}
-              onClick={() => {
-                setJobId(null)
-                setStreamEvent(null)
-                generateMutation.mutate()
-              }}
+              disabled={!isAdmin || generateMutation.isPending || !range?.from || !range.to}
+              onClick={() => generateMutation.mutate()}
             >
-              {isGenerating ? "Generating..." : "Generate"}
+              {generateMutation.isPending ? "Generating..." : "Generate"}
             </Button>
             {!isAuthenticated && (
               <span className="text-sm text-muted-foreground">
@@ -174,38 +122,25 @@ export default function PanchangamTab() {
             )}
           </div>
 
-          {foreignJob && <ActiveJobBanner job={foreignJob} />}
-          {!foreignJobRunning && isGenerating && (
+          {generateMutation.isPending && progress && (
             <div className="flex flex-col gap-1">
-              {progress ? (
-                <>
-                  <Progress value={progress.percent} />
-                  <span className="text-sm text-muted-foreground">
-                    {progress.completed === 0
-                      ? `Computing panchangam data… ${Math.round(progress.elapsed_seconds)}s elapsed`
-                      : `${progress.completed}/${progress.total} days (${format(parseISO(progress.current_date), "d MMM")})`}
-                  </span>
-                </>
-              ) : (
-                <span className="text-sm text-muted-foreground">Generating…</span>
-              )}
+              <Progress value={progress.percent} />
+              <span className="text-sm text-muted-foreground">
+                {progress.completed}/{progress.total} days ({format(parseISO(progress.current_date), "d MMM")})
+              </span>
             </div>
           )}
-          {result && (
+          {generateMutation.isSuccess && (
             <p className="text-sm text-foreground">
-              Generated {result.count} day(s) from {result.start_date} to {result.end_date}.
+              Generated {generateMutation.data.count} day(s) from{" "}
+              {generateMutation.data.start_date} to {generateMutation.data.end_date}.
             </p>
           )}
-          {generateMutation.isError && !foreignJobRunning && (
+          {generateMutation.isError && (
             <p className="text-sm text-destructive">
               {generateMutation.error instanceof Error
                 ? generateMutation.error.message
                 : "Failed to generate panchangam data."}
-            </p>
-          )}
-          {(streamError !== undefined || job?.status === "failed") && (
-            <p className="text-sm text-destructive">
-              {streamError ?? job?.error ?? "Failed to generate panchangam data."}
             </p>
           )}
         </CardContent>

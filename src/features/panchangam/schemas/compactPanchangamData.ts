@@ -61,3 +61,14 @@ export const panchangamGenerateProgress = z.object({
 })
 
 export type PanchangamGenerateProgress = z.infer<typeof panchangamGenerateProgress>
+
+export const panchangamGenerateError = z.object({
+  type: z.literal("error"),
+  detail: z.string(),
+})
+
+export const panchangamGenerateLine = z.discriminatedUnion("type", [
+  panchangamGenerateProgress,
+  panchangamGenerateResult,
+  panchangamGenerateError,
+])

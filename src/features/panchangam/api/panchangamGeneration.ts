@@ -1,9 +1,7 @@
 import { format } from "date-fns"
 import * as z from "zod"
-import { compactPanchangamData } from "../schemas/compactPanchangamData"
-import type { PanchangamGenerateProgress, PanchangamGenerateResult } from "../schemas/compactPanchangamData"
-import { generationJobStarted } from "@/features/generation-jobs/schemas/generationJob"
-import { jobStartedFromHeaders, readNdjsonLines } from "@/features/generation-jobs/api/generationJobs"
+import { compactPanchangamData, panchangamGenerateLine } from "../schemas/compactPanchangamData"
+import type { PanchangamGenerateProgress, panchangamGenerateResult } from "../schemas/compactPanchangamData"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
@@ -49,43 +47,13 @@ export function getPanchangamYear(
   )
 }
 
-export class ConflictError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = "ConflictError"
-  }
-}
+export class PanchangamGenerationError extends Error {}
 
-async function parseErrorDetail(response: Response, fallback: string) {
-  try {
-    const body = await response.json()
-    return typeof body.detail === "string" ? body.detail : fallback
-  } catch {
-    return fallback
-  }
-}
-
-export type PanchangamGenerateStreamEvent =
-  | PanchangamGenerateProgress
-  | PanchangamGenerateResult
-  | { type: "error"; detail: string }
-
-// Starts a generation job. The job's id/type are available as soon as the
-// response headers arrive (before the body starts streaming); the run keeps
-// going server-side even if this call's connection is later lost, so the
-// caller should track the returned job id via `useGenerationJobStatus`
-// regardless of whether it also passes `onEvent`.
-//
-// `onEvent`, if given, is called for each NDJSON progress/complete/error line
-// as it streams in — a live view that's faster than the 4s job-status poll,
-// but best-effort only: if the tab navigates away or the connection drops,
-// these calls simply stop (see `readNdjsonLines`), and the caller falls back
-// to polling for the final state.
-export async function startPanchangamGeneration(
+export async function generatePanchangam(
   startDate: Date,
   endDate: Date,
   location: string,
-  onEvent?: (event: PanchangamGenerateStreamEvent) => void
+  onProgress?: (progress: PanchangamGenerateProgress) => void
 ) {
   const response = await fetch(
     `${APP_BASE_URL}/api/v1/panchangam/generate?location=${location}`,
@@ -105,31 +73,45 @@ export async function startPanchangamGeneration(
 
   if (response.status === 401) throw new UnauthorizedError()
   if (response.status === 403) throw new ForbiddenError()
-  if (response.status === 409) {
-    throw new ConflictError(
-      await parseErrorDetail(response, "A data-generation job is already running.")
-    )
-  }
   if (!response.ok) {
-    throw new Error(await parseErrorDetail(response, "Failed to start panchangam generation"))
+    throw new Error("Failed to generate panchangam data")
+  }
+  if (!response.body) {
+    throw new Error("Failed to generate panchangam data: empty response")
   }
 
-  const started = await generationJobStarted.parseAsync({
-    ...jobStartedFromHeaders(response),
-    status: "running",
-  })
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  let result: z.infer<typeof panchangamGenerateResult> | undefined
 
-  // Always drain the body, even without an `onEvent` listener: the server
-  // keeps writing progress lines as it works, and an unread response body
-  // would eventually apply TCP backpressure and stall those writes.
-  void readNdjsonLines(response, (line) => {
-    if (!onEvent) return
-    try {
-      onEvent(JSON.parse(line) as PanchangamGenerateStreamEvent)
-    } catch {
-      // Ignore a malformed line rather than breaking the whole stream.
+  const handleLine = (line: string) => {
+    if (!line.trim()) return
+    const parsed = panchangamGenerateLine.parse(JSON.parse(line))
+    if (parsed.type === "progress") {
+      onProgress?.(parsed)
+    } else if (parsed.type === "error") {
+      throw new PanchangamGenerationError(parsed.detail)
+    } else {
+      result = parsed
     }
-  })
+  }
 
-  return started
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split("\n")
+    buffer = lines.pop() ?? ""
+    for (const line of lines) {
+      handleLine(line)
+    }
+  }
+  buffer += decoder.decode()
+  handleLine(buffer)
+
+  if (!result) {
+    throw new Error("Panchangam generation stream ended without a result")
+  }
+  return result
 }
