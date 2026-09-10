@@ -181,7 +181,9 @@ export default function PanchangamTab() {
                 <>
                   <Progress value={progress.percent} />
                   <span className="text-sm text-muted-foreground">
-                    {progress.completed}/{progress.total} days ({format(parseISO(progress.current_date), "d MMM")})
+                    {progress.completed === 0
+                      ? `Computing panchangam data… ${Math.round(progress.elapsed_seconds)}s elapsed`
+                      : `${progress.completed}/${progress.total} days (${format(parseISO(progress.current_date), "d MMM")})`}
                   </span>
                 </>
               ) : (
