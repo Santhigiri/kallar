@@ -61,3 +61,14 @@ export const santhigiriEventGenerateResult = santhigiriEventOccurrences.extend({
 })
 
 export type SanthigiriEventGenerateResult = z.infer<typeof santhigiriEventGenerateResult>
+
+export const santhigiriEventGenerateError = z.object({
+  type: z.literal("error"),
+  detail: z.string(),
+})
+
+export const santhigiriEventGenerateLine = z.discriminatedUnion("type", [
+  santhigiriEventGenerateProgress,
+  santhigiriEventGenerateResult,
+  santhigiriEventGenerateError,
+])

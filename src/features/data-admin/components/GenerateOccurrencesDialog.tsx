@@ -2,16 +2,10 @@ import { useEffect, useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
-import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
-import type { SanthigiriEventGenerateStreamEvent } from "@/features/santhigiri-events/api/santhigiriEvents"
-import {
-  santhigiriEventGenerateProgress,
-  santhigiriEventGenerateResult,
+import type {
+  SanthigiriEvent,
+  SanthigiriEventGenerateProgress,
 } from "@/features/santhigiri-events/schemas/santhigiriEvent"
-import { ConflictError } from "@/features/santhigiri-events/api/santhigiriEvents"
-import { useGenerationJobStatus } from "@/features/generation-jobs/hooks/useGenerationJobStatus"
-import { useActiveGenerationJob } from "@/features/generation-jobs/hooks/useActiveGenerationJob"
-import { ActiveJobBanner } from "@/features/generation-jobs/components/ActiveJobBanner"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -40,9 +34,6 @@ const YEAR_OPTIONS = Array.from(
 
 const MAX_YEAR_SPAN = 15
 
-// Mirrors `SINGLE_EVENT_JOB_TYPE` in the backend's `features/santhigiri_events/router.py`.
-const EVENT_OCCURRENCES_JOB_TYPE = "event_occurrences"
-
 type GenerateOccurrencesDialogProps = {
   event: SanthigiriEvent | null
   onOpenChange: (open: boolean) => void
@@ -54,44 +45,8 @@ export function GenerateOccurrencesDialog({
 }: GenerateOccurrencesDialogProps) {
   const [startYear, setStartYear] = useState(() => new Date().getFullYear())
   const [endYear, setEndYear] = useState(() => new Date().getFullYear())
-  const [jobId, setJobId] = useState<string | null>(null)
-  // Live progress pushed straight from the streamed response — updates
-  // faster than the 4s job-status poll while the dialog stays open. It's
-  // purely a display accelerant: `jobQuery` below (backed by the
-  // DB-persisted job row) is still what drives resuming after a reload or a
-  // lost connection.
-  const [streamEvent, setStreamEvent] = useState<SanthigiriEventGenerateStreamEvent | null>(null)
-  const generateMutation = useGenerateSanthigiriEventOccurrences()
-
-  const jobQuery = useGenerationJobStatus(jobId)
-  const job = jobQuery.data
-  const streamProgress = streamEvent?.type === "progress" ? streamEvent : undefined
-  const streamResult = streamEvent?.type === "complete" ? streamEvent : undefined
-  const streamError = streamEvent?.type === "error" ? streamEvent.detail : undefined
-  const progress =
-    streamProgress ??
-    (job?.status === "running" ? santhigiriEventGenerateProgress.safeParse(job.progress).data : undefined)
-  const result =
-    streamResult ??
-    (job?.status === "succeeded" ? santhigiriEventGenerateResult.safeParse(job.result).data : undefined)
-
-  // Finds a job already running — from this dialog reopened, another admin,
-  // or the panchangam tab — so its progress shows instead of a static
-  // "already running" note. Only polled while we aren't tracking our own job.
-  const activeJobQuery = useActiveGenerationJob(event !== null && jobId === null)
-  const activeJob = activeJobQuery.data ?? null
-  const foreignJob = activeJob && activeJob.job_type !== EVENT_OCCURRENCES_JOB_TYPE ? activeJob : null
-  const foreignJobRunning = foreignJob !== null
-
-  useEffect(() => {
-    if (jobId === null && activeJob?.job_type === EVENT_OCCURRENCES_JOB_TYPE) {
-      setJobId(activeJob.id)
-    }
-  }, [jobId, activeJob])
-
-  const streamDone = streamResult !== undefined || streamError !== undefined
-  const isGenerating =
-    !streamDone && (generateMutation.isPending || job?.status === "running" || foreignJobRunning)
+  const [progress, setProgress] = useState<SanthigiriEventGenerateProgress | null>(null)
+  const generateMutation = useGenerateSanthigiriEventOccurrences(setProgress)
 
   const { reset: resetGenerateMutation } = generateMutation
   useEffect(() => {
@@ -99,8 +54,7 @@ export function GenerateOccurrencesDialog({
       const currentYear = new Date().getFullYear()
       setStartYear(currentYear)
       setEndYear(currentYear)
-      setJobId(null)
-      setStreamEvent(null)
+      setProgress(null)
       resetGenerateMutation()
     }
   }, [event, resetGenerateMutation])
@@ -109,8 +63,8 @@ export function GenerateOccurrencesDialog({
   const rangeTooLarge = !rangeInvalid && endYear - startYear + 1 > MAX_YEAR_SPAN
 
   const handleCopyDates = () => {
-    if (!result) return
-    const text = Object.entries(result.occurrences)
+    if (!generateMutation.data) return
+    const text = Object.entries(generateMutation.data.occurrences)
       .flatMap(([, dates]) => dates)
       .sort()
       .map((date) => format(parseISO(date), "d MMMM yyyy"))
@@ -174,25 +128,18 @@ export function GenerateOccurrencesDialog({
           <FieldError>Year range too large (max {MAX_YEAR_SPAN} years).</FieldError>
         )}
 
-        {foreignJob && <ActiveJobBanner job={foreignJob} />}
-        {!foreignJobRunning && isGenerating && (
+        {generateMutation.isPending && progress && (
           <div className="flex flex-col gap-1">
-            {progress ? (
-              <>
-                <Progress value={progress.percent} />
-                <span className="text-sm text-muted-foreground">
-                  {progress.completed}/{progress.total} years ({progress.year})
-                </span>
-              </>
-            ) : (
-              <span className="text-sm text-muted-foreground">Generating…</span>
-            )}
+            <Progress value={progress.percent} />
+            <span className="text-sm text-muted-foreground">
+              {progress.completed}/{progress.total} years ({progress.year})
+            </span>
           </div>
         )}
 
-        {result && (
+        {generateMutation.isSuccess && (
           <div className="max-h-64 overflow-y-auto text-sm text-foreground">
-            {Object.entries(result.occurrences).map(([year, dates]) => (
+            {Object.entries(generateMutation.data.occurrences).map(([year, dates]) => (
               <div key={year} className="mb-2">
                 <p className="mb-1 font-medium">
                   {year}: {dates.length === 0 ? "no occurrences" : `${dates.length} occurrence(s)`}
@@ -209,7 +156,7 @@ export function GenerateOccurrencesDialog({
           </div>
         )}
 
-        {generateMutation.isError && !foreignJobRunning && (
+        {generateMutation.isError && (
           <FieldError>
             {generateMutation.error instanceof Error
               ? generateMutation.error.message
@@ -217,12 +164,8 @@ export function GenerateOccurrencesDialog({
           </FieldError>
         )}
 
-        {(streamError !== undefined || job?.status === "failed") && (
-          <FieldError>{streamError ?? job?.error ?? "Failed to generate occurrences."}</FieldError>
-        )}
-
         <DialogFooter>
-          {result ? (
+          {generateMutation.isSuccess ? (
             <>
               <Button variant="outline" onClick={handleCopyDates}>
                 <Copy />
@@ -232,24 +175,15 @@ export function GenerateOccurrencesDialog({
             </>
           ) : (
             <Button
-              disabled={!event || isGenerating || rangeInvalid || rangeTooLarge}
+              disabled={!event || generateMutation.isPending || rangeInvalid || rangeTooLarge}
               onClick={() => {
                 if (event) {
-                  setJobId(null)
-                  setStreamEvent(null)
-                  generateMutation.mutate(
-                    { eventId: event.id, startYear, endYear, onEvent: setStreamEvent },
-                    {
-                      onSuccess: (started) => setJobId(started.job_id),
-                      onError: (error) => {
-                        if (error instanceof ConflictError) activeJobQuery.refetch()
-                      },
-                    }
-                  )
+                  setProgress(null)
+                  generateMutation.mutate({ eventId: event.id, startYear, endYear })
                 }
               }}
             >
-              {isGenerating ? "Generating..." : "Generate"}
+              {generateMutation.isPending ? "Generating..." : "Generate"}
             </Button>
           )}
         </DialogFooter>

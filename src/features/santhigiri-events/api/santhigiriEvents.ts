@@ -1,9 +1,12 @@
-import { santhigiriEventDetail } from "../schemas/santhigiriEvent"
-import type { SanthigiriEventFormValues,
+import {
+  santhigiriEventDetail,
+  santhigiriEventGenerateLine,
+} from "../schemas/santhigiriEvent"
+import type {
+  SanthigiriEventFormValues,
   SanthigiriEventGenerateProgress,
-  SanthigiriEventGenerateResult } from "../schemas/santhigiriEvent"
-import { generationJobStarted } from "@/features/generation-jobs/schemas/generationJob"
-import { jobStartedFromHeaders, readNdjsonLines } from "@/features/generation-jobs/api/generationJobs"
+  SanthigiriEventGenerateResult,
+} from "../schemas/santhigiriEvent"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
@@ -95,27 +98,16 @@ export async function deleteSanthigiriEvent(eventId: string) {
   await handleErrors(response)
 }
 
-export type SanthigiriEventGenerateStreamEvent =
-  | SanthigiriEventGenerateProgress
-  | SanthigiriEventGenerateResult
-  | { type: "error"; detail: string }
+export class SanthigiriEventGenerationError extends Error {}
 
-// Starts an occurrence-generation job. The job's id/type are available as
-// soon as the response headers arrive (before the body starts streaming);
-// the run keeps going server-side even if this call's connection is later
-// lost, so the caller should track the returned job id via
-// `useGenerationJobStatus` regardless of whether it also passes `onEvent`.
-//
-// `onEvent`, if given, is called for each NDJSON progress/complete/error line
-// as it streams in — see `startPanchangamGeneration` for the same pattern.
-export async function startSanthigiriEventOccurrences(
+export async function generateSanthigiriEventOccurrences(
   eventId: string,
   startYear: number,
   endYear: number,
-  onEvent?: (event: SanthigiriEventGenerateStreamEvent) => void
-) {
+  onProgress?: (progress: SanthigiriEventGenerateProgress) => void
+): Promise<SanthigiriEventGenerateResult> {
   const response = await fetch(
-    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences`,
+    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences/stream`,
     {
       method: "POST",
       headers: {
@@ -128,24 +120,44 @@ export async function startSanthigiriEventOccurrences(
   )
 
   await handleErrors(response)
-  const started = await generationJobStarted.parseAsync({
-    ...jobStartedFromHeaders(response),
-    status: "running",
-  })
+  if (!response.body) {
+    throw new Error("Failed to generate occurrences: empty response")
+  }
 
-  // Always drain the body, even without an `onEvent` listener — see
-  // `startPanchangamGeneration` for why (backpressure on an unread stream
-  // would otherwise stall the server's progress writes).
-  void readNdjsonLines(response, (line) => {
-    if (!onEvent) return
-    try {
-      onEvent(JSON.parse(line) as SanthigiriEventGenerateStreamEvent)
-    } catch {
-      // Ignore a malformed line rather than breaking the whole stream.
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ""
+  let result: SanthigiriEventGenerateResult | undefined
+
+  const handleLine = (line: string) => {
+    if (!line.trim()) return
+    const parsed = santhigiriEventGenerateLine.parse(JSON.parse(line))
+    if (parsed.type === "progress") {
+      onProgress?.(parsed)
+    } else if (parsed.type === "error") {
+      throw new SanthigiriEventGenerationError(parsed.detail)
+    } else {
+      result = parsed
     }
-  })
+  }
 
-  return started
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+    const lines = buffer.split("\n")
+    buffer = lines.pop() ?? ""
+    for (const line of lines) {
+      handleLine(line)
+    }
+  }
+  buffer += decoder.decode()
+  handleLine(buffer)
+
+  if (!result) {
+    throw new Error("Occurrence generation stream ended without a result")
+  }
+  return result
 }
 
 export async function getSanthigiriEvent(eventId: string) {
