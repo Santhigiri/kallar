@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns"
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
 import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
+import type { SanthigiriEventGenerateStreamEvent } from "@/features/santhigiri-events/api/santhigiriEvents"
 import {
   santhigiriEventGenerateProgress,
   santhigiriEventGenerateResult,
@@ -54,14 +55,25 @@ export function GenerateOccurrencesDialog({
   const [startYear, setStartYear] = useState(() => new Date().getFullYear())
   const [endYear, setEndYear] = useState(() => new Date().getFullYear())
   const [jobId, setJobId] = useState<string | null>(null)
+  // Live progress pushed straight from the streamed response — updates
+  // faster than the 4s job-status poll while the dialog stays open. It's
+  // purely a display accelerant: `jobQuery` below (backed by the
+  // DB-persisted job row) is still what drives resuming after a reload or a
+  // lost connection.
+  const [streamEvent, setStreamEvent] = useState<SanthigiriEventGenerateStreamEvent | null>(null)
   const generateMutation = useGenerateSanthigiriEventOccurrences()
 
   const jobQuery = useGenerationJobStatus(jobId)
   const job = jobQuery.data
+  const streamProgress = streamEvent?.type === "progress" ? streamEvent : undefined
+  const streamResult = streamEvent?.type === "complete" ? streamEvent : undefined
+  const streamError = streamEvent?.type === "error" ? streamEvent.detail : undefined
   const progress =
-    job?.status === "running" ? santhigiriEventGenerateProgress.safeParse(job.progress).data : undefined
+    streamProgress ??
+    (job?.status === "running" ? santhigiriEventGenerateProgress.safeParse(job.progress).data : undefined)
   const result =
-    job?.status === "succeeded" ? santhigiriEventGenerateResult.safeParse(job.result).data : undefined
+    streamResult ??
+    (job?.status === "succeeded" ? santhigiriEventGenerateResult.safeParse(job.result).data : undefined)
 
   // Finds a job already running — from this dialog reopened, another admin,
   // or the panchangam tab — so its progress shows instead of a static
@@ -77,7 +89,9 @@ export function GenerateOccurrencesDialog({
     }
   }, [jobId, activeJob])
 
-  const isGenerating = generateMutation.isPending || job?.status === "running" || foreignJobRunning
+  const streamDone = streamResult !== undefined || streamError !== undefined
+  const isGenerating =
+    !streamDone && (generateMutation.isPending || job?.status === "running" || foreignJobRunning)
 
   const { reset: resetGenerateMutation } = generateMutation
   useEffect(() => {
@@ -86,6 +100,7 @@ export function GenerateOccurrencesDialog({
       setStartYear(currentYear)
       setEndYear(currentYear)
       setJobId(null)
+      setStreamEvent(null)
       resetGenerateMutation()
     }
   }, [event, resetGenerateMutation])
@@ -202,8 +217,8 @@ export function GenerateOccurrencesDialog({
           </FieldError>
         )}
 
-        {job?.status === "failed" && (
-          <FieldError>{job.error ?? "Failed to generate occurrences."}</FieldError>
+        {(streamError !== undefined || job?.status === "failed") && (
+          <FieldError>{streamError ?? job?.error ?? "Failed to generate occurrences."}</FieldError>
         )}
 
         <DialogFooter>
@@ -221,8 +236,9 @@ export function GenerateOccurrencesDialog({
               onClick={() => {
                 if (event) {
                   setJobId(null)
+                  setStreamEvent(null)
                   generateMutation.mutate(
-                    { eventId: event.id, startYear, endYear },
+                    { eventId: event.id, startYear, endYear, onEvent: setStreamEvent },
                     {
                       onSuccess: (started) => setJobId(started.job_id),
                       onError: (error) => {

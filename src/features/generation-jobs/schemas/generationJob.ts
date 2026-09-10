@@ -1,7 +1,9 @@
 import * as z from "zod"
 
-// Returned immediately (202) by any `POST .../generate*` endpoint. The run
-// itself continues in the background — poll `/api/v1/generation-jobs/{job_id}`.
+// Read off the `X-Job-Id`/`X-Job-Type` headers of any `POST .../generate*`
+// endpoint's streamed response, before its NDJSON body is read. The run
+// keeps going even if the stream is lost — poll
+// `/api/v1/generation-jobs/{job_id}` to pick progress back up.
 export const generationJobStarted = z.object({
   job_id: z.string(),
   job_type: z.string(),
