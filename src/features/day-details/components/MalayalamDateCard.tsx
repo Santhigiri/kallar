@@ -8,6 +8,7 @@ type MalayalamDateCardProps = {
   nakshatra: Nakshatra
   nakshatraTransitions: Array<NakshatraTransition>
   kv: KollavarshamDate
+  timeZone?: string
 }
 
 // The transition list is chronological, so the first entry matching the
@@ -26,6 +27,7 @@ export default function MalayalamDateCard({
   nakshatra,
   nakshatraTransitions,
   kv,
+  timeZone,
 }: MalayalamDateCardProps) {
   const thithiEnd = currentWindowEnd(
     thithiTransitions.map((t) => ({ ...t, name: t.thithi.en })),
@@ -45,7 +47,7 @@ export default function MalayalamDateCard({
             <p className="text-[11px] tracking-wide text-accent-700 uppercase">Thithi</p>
             <p className="mt-1 truncate font-playfair-display text-3xl leading-tight">{thithi.en}</p>
             {thithiEnd && (
-              <p className="mt-1.5 text-xs text-accent-700">until {getFormattedTime(thithiEnd)}</p>
+              <p className="mt-1.5 text-xs text-accent-700">until {getFormattedTime(thithiEnd, timeZone)}</p>
             )}
           </div>
           <div className="w-px shrink-0 bg-border" />
@@ -53,7 +55,7 @@ export default function MalayalamDateCard({
             <p className="text-[11px] tracking-wide text-accent-700 uppercase">Nakshatra</p>
             <p className="mt-1 truncate font-playfair-display text-3xl leading-tight">{nakshatra.en}</p>
             {nakshatraEnd && (
-              <p className="mt-1.5 text-xs text-accent-700">until {getFormattedTime(nakshatraEnd)}</p>
+              <p className="mt-1.5 text-xs text-accent-700">until {getFormattedTime(nakshatraEnd, timeZone)}</p>
             )}
           </div>
         </div>

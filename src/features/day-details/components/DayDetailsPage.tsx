@@ -161,6 +161,7 @@ export default function DayDetailsPage() {
               nakshatra={activeDateData.nakshatra}
               nakshatraTransitions={activeDateData.nakshatra_transitions}
               kv={activeDateData.kv}
+              timeZone={timeZone}
             />
           ) : (
             <MalayalamDateCardSkeleton />
