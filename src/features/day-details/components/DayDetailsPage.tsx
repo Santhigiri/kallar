@@ -75,11 +75,14 @@ export default function DayDetailsPage() {
               )}
             </div>
             {activeDateData ? (
-              <p className="mt-1 truncate text-sm text-muted-foreground">
-                {activeDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
-                {" · Kollavarsham "}
-                {activeDateData.kv.kv_day} {activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
-              </p>
+              <div className="mt-1">
+                <p className="truncate text-sm text-muted-foreground">
+                  {activeDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {activeDateData.kv.kv_day} {activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
+                </p>
+              </div>
             ) : (
               <Skeleton className="mt-2 h-4 w-48" />
             )}
@@ -96,7 +99,8 @@ export default function DayDetailsPage() {
             </Button>
             <Button
               variant="ghost"
-              className="hidden md:inline-flex"
+              size="sm"
+              className="md:h-9 md:gap-1.5 md:rounded-md"
               onClick={() => setActiveDate(new Date())}
             >
               Today
