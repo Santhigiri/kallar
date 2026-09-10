@@ -22,6 +22,8 @@ import { useHomePanchangam } from "@/features/day-details/hooks/useHomePanchanga
 import { useLocalSunriseSunset } from "@/features/day-details/hooks/useLocalSunriseSunset";
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useSelectedLocation } from "@/hooks/useSelectedLocation";
+import { useLocationOptions } from "@/hooks/useLocationOptions";
 
 // Selected takes the color today used to have (secondary) and today takes
 // the color selected used to have (the primary saffron) — inverted on
@@ -47,7 +49,10 @@ function DatePickerDayButton({ className, modifiers, ...props }: ComponentProps<
 
 export default function DayDetailsPage() {
   const { activeDate, setActiveDate, activeDateData, upcomingEvents, isLoading } = useHomePanchangam();
-  const { sunrise, sunset, timeZone } = useLocalSunriseSunset(activeDate);
+  const { locationCode } = useSelectedLocation();
+  const { options: locationOptions } = useLocationOptions();
+  const selectedLocation = locationOptions.find((location) => location.code === locationCode);
+  const { sunrise, sunset, timeZone } = useLocalSunriseSunset(activeDate, selectedLocation);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const isToday = isTodayFn(activeDate);
 
@@ -176,6 +181,7 @@ export default function DayDetailsPage() {
             <ThithiTransitionCard
               transitions={activeDateData.thithi_transitions}
               current_thithi={activeDateData.thithi}
+              timeZone={timeZone}
             />
           ) : (
             <CompactTransitionRowSkeleton />
@@ -185,6 +191,7 @@ export default function DayDetailsPage() {
             <NakshatraTransitionCard
               transitions={activeDateData.nakshatra_transitions}
               current_nakshatra={activeDateData.nakshatra}
+              timeZone={timeZone}
             />
           ) : (
             <CompactTransitionRowSkeleton />

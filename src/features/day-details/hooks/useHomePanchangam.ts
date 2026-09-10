@@ -7,7 +7,8 @@ import { useReferenceMaps } from "@/features/panchangam/hooks/useReferenceMaps";
 import { dateToKey } from "@/lib/date";
 import { enrichPanchangamDay } from "@/features/panchangam/lib/enrichPanchangamData";
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants";
-import { useSelectedLocation } from "@/hooks/useSelectedLocation";
+import { DEFAULT_LOCATION_CODE, useSelectedLocation } from "@/hooks/useSelectedLocation";
+import { CURRENT_LOCATION_CODE } from "@/hooks/useLocationOptions";
 
 // How far ahead to scan for "upcoming events" — long enough to surface the
 // next recurring observance (Pournami etc.), short enough to stay relevant
@@ -22,7 +23,13 @@ export type UpcomingEvent = {
 
 export function useHomePanchangam(initialActiveDate = new Date()) {
   const [activeDate, setActiveDate] = useState<Date>(initialActiveDate);
-  const { locationCode } = useSelectedLocation()
+  const { locationCode: selectedLocationCode } = useSelectedLocation()
+  // Panchangam data (thithi/nakshatra/etc.) is only precomputed for backend
+  // reference locations — the ip-derived "Current Location" pseudo-entry has
+  // no such data, so it falls back to the default location here. Only
+  // sunrise/sunset (useLocalSunriseSunset) actually follows that selection.
+  const locationCode =
+    selectedLocationCode === CURRENT_LOCATION_CODE ? DEFAULT_LOCATION_CODE : selectedLocationCode
   const year = activeDate.getFullYear()
   const queryClient = useQueryClient()
 
