@@ -26,7 +26,7 @@ export default function LocationPicker({ showLabel }: LocationPickerProps) {
         </span>
       )}
       <Select value={locationCode} onValueChange={setLocationCode}>
-        <SelectTrigger className="h-auto w-full justify-start gap-2 border-none bg-transparent p-0 text-sm shadow-none hover:bg-transparent focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent [&>svg]:hidden">
+        <SelectTrigger className="h-auto w-full justify-start gap-2 border-none bg-transparent p-0 text-sm shadow-none hover:bg-transparent focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent [&>svg:last-child]:hidden group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
           <MapPin size={16} className="shrink-0 text-muted-foreground" />
           {showLabel && (
             <span className="truncate">

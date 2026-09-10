@@ -181,6 +181,7 @@ export default function DayDetailsPage() {
             <ThithiTransitionCard
               transitions={activeDateData.thithi_transitions}
               current_thithi={activeDateData.thithi}
+              timeZone={timeZone}
             />
           ) : (
             <CompactTransitionRowSkeleton />
@@ -190,6 +191,7 @@ export default function DayDetailsPage() {
             <NakshatraTransitionCard
               transitions={activeDateData.nakshatra_transitions}
               current_nakshatra={activeDateData.nakshatra}
+              timeZone={timeZone}
             />
           ) : (
             <CompactTransitionRowSkeleton />

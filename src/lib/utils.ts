@@ -29,7 +29,11 @@ export function getFormattedTime(datetime: string, timeZone?: string, showTimezo
   return new Date(datetime).toLocaleTimeString(getLocaleForTimezone(timeZone), options)
 }
 
-export function getFormattedDateTime(datetime: string | null, timeZone?: string): string {
+export function getFormattedDateTime(
+  datetime: string | null,
+  timeZone?: string,
+  showTimezoneName: boolean = false
+): string {
 
   if (datetime === null) return ""
 
@@ -37,6 +41,7 @@ export function getFormattedDateTime(datetime: string | null, timeZone?: string)
     month: 'short', day: 'numeric',
     hour: 'numeric', minute: 'numeric',
     hour12: true,
+    ...(showTimezoneName ? { timeZoneName: 'short' } : {}),
     ...(timeZone ? { timeZone } : {}),
   };
 

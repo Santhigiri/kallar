@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Calendar, Database, LogOutIcon, Settings, Sun, Telescope, User } from "lucide-react";
+import { Calendar, Database, Home, LogOutIcon, Settings, Telescope, User } from "lucide-react";
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { LoginDialog } from "@/features/auth/components/LoginDialog";
@@ -29,7 +29,7 @@ type NavItemProps = {
 
 const baseNavItems: Array<NavItemProps> = [
   { to: "/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/", icon: Sun, label: "Today" },
+  { to: "/", icon: Home, label: "Today" },
   { to: "/starfinder", icon: Telescope, label: "Explore" },
 ];
 
@@ -63,15 +63,13 @@ export default function Sidebar() {
   return (
     <>
       <SidebarPrimitive collapsible="icon">
-        <SidebarHeader className="flex-row items-start justify-between gap-2 border-b border-sidebar-border group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center">
+        <SidebarHeader className="flex-row items-start justify-between gap-2 border-b border-sidebar-border group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate font-playfair-display text-lg leading-tight font-semibold">Panchangam</p>
             <p className="truncate text-xs text-muted-foreground">Santhigiri Ashram</p>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <div className="group-data-[collapsible=icon]:hidden">
-              <ThemeToggle />
-            </div>
+          <div className="flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:flex-col">
+            <ThemeToggle />
             <SidebarTrigger />
           </div>
         </SidebarHeader>

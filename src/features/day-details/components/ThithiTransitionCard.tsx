@@ -5,10 +5,11 @@ import { getFormattedDateTime } from "@/lib/utils"
 
 type ThithiTransitionCardProps = {
   transitions: Array<ThithiTransition>,
-  current_thithi: Thithi
+  current_thithi: Thithi,
+  timeZone?: string
 }
 
-export default function ThithiTransitionCard({ transitions, current_thithi }: ThithiTransitionCardProps) {
+export default function ThithiTransitionCard({ transitions, current_thithi, timeZone }: ThithiTransitionCardProps) {
   return (
     transitions.map((transition, idx) => (
       <CompactTransitionRow
@@ -17,7 +18,9 @@ export default function ThithiTransitionCard({ transitions, current_thithi }: Th
         label="Thithi"
         value={transition.thithi.en}
         subLabel={transition.thithi.paksha.en}
-        timeRange={`${getFormattedDateTime(transition.start_time)} - ${getFormattedDateTime(transition.end_time)}`}
+        // Timezone abbreviation shown once, on the trailing end time only —
+        // repeating it on both ends of the range reads as noise.
+        timeRange={`${getFormattedDateTime(transition.start_time, timeZone)} - ${getFormattedDateTime(transition.end_time, timeZone, true)}`}
         isCurrent={transition.thithi.en === current_thithi.en}
       />
     ))
