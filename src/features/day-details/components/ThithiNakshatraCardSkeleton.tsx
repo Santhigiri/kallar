@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function MalayalamDateCardSkeleton() {
+export default function ThithiNakshatraCardSkeleton() {
   return (
     <Card className="gap-4 rounded-md bg-accent-100 py-6">
       <CardContent className="flex flex-col gap-4">

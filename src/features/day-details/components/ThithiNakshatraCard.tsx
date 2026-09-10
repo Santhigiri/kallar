@@ -2,7 +2,7 @@ import type { KollavarshamDate, Nakshatra, NakshatraTransition, Thithi, ThithiTr
 import { getFormattedTime } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
-type MalayalamDateCardProps = {
+type ThithiNakshatraCardProps = {
   thithi: Thithi
   thithiTransitions: Array<ThithiTransition>
   nakshatra: Nakshatra
@@ -21,14 +21,14 @@ function currentWindowEnd<T extends { end_time: string | null }>(
   return transitions.find((t) => t.name === currentName)?.end_time ?? null
 }
 
-export default function MalayalamDateCard({
+export default function ThithiNakshatraCard({
   thithi,
   thithiTransitions,
   nakshatra,
   nakshatraTransitions,
   kv,
   timeZone,
-}: MalayalamDateCardProps) {
+}: ThithiNakshatraCardProps) {
   const thithiEnd = currentWindowEnd(
     thithiTransitions.map((t) => ({ ...t, name: t.thithi.en })),
     thithi.en

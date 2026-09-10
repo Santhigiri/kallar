@@ -9,8 +9,8 @@ import { CompactTransitionRowSkeleton } from "./CompactTransitionRowSkeleton";
 import UpcomingEventsCard from "./UpcomingEventsCard";
 import UpcomingEventsCardSkeleton from "./UpcomingEventsCardSkeleton";
 import GuruvaniCard from "./GuruvaniCard";
-import MalayalamDateCard from "./MalayalamDateCard";
-import MalayalamDateCardSkeleton from "./MalayalamDateCardSkeleton";
+import ThithiNakshatraCard from "./ThithiNakshatraCard";
+import ThithiNakshatraCardSkeleton from "./ThithiNakshatraCardSkeleton";
 import type { DayButton } from "react-day-picker";
 import type { ComponentProps } from "react";
 import TopAppBar from "@/components/shared/TopAppBar";
@@ -159,7 +159,7 @@ export default function DayDetailsPage() {
           </div>
 
           {activeDateData ? (
-            <MalayalamDateCard
+            <ThithiNakshatraCard
               thithi={activeDateData.thithi}
               thithiTransitions={activeDateData.thithi_transitions}
               nakshatra={activeDateData.nakshatra}
@@ -168,7 +168,7 @@ export default function DayDetailsPage() {
               timeZone={timeZone}
             />
           ) : (
-            <MalayalamDateCardSkeleton />
+            <ThithiNakshatraCardSkeleton />
           )}
 
           {sunrise && sunset ? (
