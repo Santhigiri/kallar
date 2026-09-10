@@ -184,7 +184,7 @@ export default function StarfinderPage() {
                           <CalendarIcon />
                           {date.toLocaleDateString("default", {
                             year: "numeric",
-                            month: "long",
+                            month: "short",
                             day: "numeric",
                           })}
                         </Button>
