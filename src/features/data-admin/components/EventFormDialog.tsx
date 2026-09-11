@@ -379,7 +379,6 @@ export function EventFormDialog({
                   value={form.chandra_masa_month}
                   onChange={(value) => set("chandra_masa_month", value)}
                   isLoading={chandraMasaReference.isLoading}
-                  showNoneOption={false}
                   options={(chandraMasaReference.data ?? []).map((m) => ({
                     id: m.id,
                     label: `${m.en} (${m.ml})`,
