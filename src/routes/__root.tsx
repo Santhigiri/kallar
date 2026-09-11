@@ -4,9 +4,10 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { queryClient } from "@/lib/query-client"
 import { RefreshPrompt } from "@/components/shared/RefreshPrompt"
 import Sidebar from "@/components/shared/Sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/features/auth/hooks/useAuth"
-import { MobileSidebarProvider } from "@/hooks/useMobileSidebar"
+import { SelectedLocationProvider } from "@/hooks/useSelectedLocation"
 
 export const Route = createRootRoute({
   head: () => ({
@@ -41,12 +42,12 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <div className="flex h-dvh w-full bg-card overflow-hidden">
+      <SidebarProvider defaultOpen={false} className="h-dvh bg-card overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto overscroll-y-contain p-2 pb-16 md:ml-16 md:pb-2">
+        <main className="flex-1 overflow-y-auto overscroll-y-contain p-2 pb-16 md:pb-2">
           <Outlet /> {/* Child routes render here */}
         </main>
-      </div>
+      </SidebarProvider>
     </RootDocument>
   )
 }
@@ -55,12 +56,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <MobileSidebarProvider>
+        <SelectedLocationProvider>
           <HeadContent />
           {children}
           <RefreshPrompt />
           <Toaster />
-        </MobileSidebarProvider>
+        </SelectedLocationProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

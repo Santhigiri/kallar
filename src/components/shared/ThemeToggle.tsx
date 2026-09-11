@@ -1,11 +1,7 @@
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 
-type ThemeToggleProps = {
-  showLabel: boolean;
-};
-
-export default function ThemeToggle({ showLabel }: ThemeToggleProps) {
+export default function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
@@ -13,13 +9,10 @@ export default function ThemeToggle({ showLabel }: ThemeToggleProps) {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={`
-          flex w-full items-center justify-start gap-3 appearance-none px-4 py-3 rounded-md
-          transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-        `}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
     >
-      {isDark ? <Moon size={20} className="min-w-5" /> : <Sun size={20} className="min-w-5" />}
-      {showLabel && <span className="truncate">{isDark ? "Dark mode" : "Light mode"}</span>}
+      {isDark ? <Moon size={16} /> : <Sun size={16} />}
     </button>
   );
 }

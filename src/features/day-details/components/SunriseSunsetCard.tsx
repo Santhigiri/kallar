@@ -14,10 +14,11 @@ import { Card, CardContent } from "@/components/ui/card"
 type SunriseSunsetProps = {
   sunrise: ISODatetime,
   sunset: ISODatetime,
-  timeZone?: string
+  timeZone?: string,
+  nazhika?: number,
 }
 
-export default function SunriseSunsetCard({ sunrise, sunset, timeZone }: SunriseSunsetProps): ReactNode {
+export default function SunriseSunsetCard({ sunrise, sunset, timeZone, nazhika }: SunriseSunsetProps): ReactNode {
   const sunriseDate = parseISO(sunrise)
   const sunsetDate = parseISO(sunset)
   const now = new Date()
@@ -76,6 +77,13 @@ export default function SunriseSunsetCard({ sunrise, sunset, timeZone }: Sunrise
         <p className="font-inter text-xs text-muted-foreground">
           daylight · {daylightHours}h {daylightRemainderMinutes}m
         </p>
+
+        {nazhika !== undefined && (
+          <div className="flex w-full items-baseline justify-between gap-3 border-t border-border pt-3">
+            <span className="font-inter text-xs text-muted-foreground">Nazhika from sunrise</span>
+            <span className="font-inter text-base font-semibold">{nazhika.toFixed(1)}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
