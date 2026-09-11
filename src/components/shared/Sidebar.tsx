@@ -1,10 +1,25 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { Home, Calendar, Database, Settings, Menu, X, type LucideIcon, User, LogOutIcon, Telescope } from "lucide-react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Calendar, Database, Home, LogOutIcon, Settings, Telescope, User } from "lucide-react";
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { LoginDialog } from "@/features/auth/components/LoginDialog";
 import ThemeToggle from "@/components/shared/ThemeToggle";
+import LocationPicker from "@/components/shared/LocationPicker";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useMobileSidebar } from "@/hooks/useMobileSidebar";
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  Sidebar as SidebarPrimitive,
+  SidebarSeparator,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
 type NavItemProps = {
   to: string;
@@ -14,8 +29,8 @@ type NavItemProps = {
 
 const baseNavItems: Array<NavItemProps> = [
   { to: "/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/starfinder", icon: Telescope, label: "Starfinder" },
+  { to: "/", icon: Home, label: "Today" },
+  { to: "/starfinder", icon: Telescope, label: "Explore" },
 ];
 
 const adminNavItems: Array<NavItemProps> = [
@@ -24,14 +39,22 @@ const adminNavItems: Array<NavItemProps> = [
 ];
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const { state, isMobile } = useSidebar();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { isAuthenticated, isVerifying, username, role, logout } = useAuth();
-  const { isMobileMenuOpen, closeMobileMenu } = useMobileSidebar();
+  const pathname = useRouterState({ select: (routerState) => routerState.location.pathname });
   const navigate = useNavigate();
   const navItems = role === "admin" ? [...baseNavItems, ...adminNavItems] : baseNavItems;
-  const showLabels = !isCollapsed || isMobileMenuOpen;
+  // The mobile sidebar is a full-width sheet, not an icon rail — labels
+  // always show there regardless of the desktop expand/collapse state.
+  const showLabels = isMobile || state === "expanded";
+  const isCollapsed = !isMobile && state === "collapsed";
   const gridColsClass = navItems.length === 5 ? "grid-cols-5" : "grid-cols-3";
+  // The location picker drives Today's and Calendar's data. Explore has its
+  // own independent place search (any location, not just this list), so it
+  // stays out of the sidebar there to avoid implying a connection that
+  // doesn't exist.
+  const showLocationPicker = pathname === "/" || pathname === "/calendar";
 
   function handleLogout() {
     logout();
@@ -40,107 +63,80 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Backdrop behind the mobile drawer — tap to dismiss */}
-      {isMobileMenuOpen && (
-        <div
-          className="md:hidden fixed inset-0 bg-black/40 z-40"
-          onClick={closeMobileMenu}
-          aria-hidden="true"
-        />
-      )}
+      <SidebarPrimitive collapsible="icon">
+        <SidebarHeader className="flex-row items-start justify-between gap-2 border-b border-sidebar-border group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
+          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="truncate font-playfair-display text-lg leading-tight font-semibold">Panchangam</p>
+            <p className="truncate text-xs text-muted-foreground">Santhigiri Ashram</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:flex-col">
+            {!isCollapsed && <ThemeToggle />}
+            <SidebarTrigger />
+          </div>
+        </SidebarHeader>
 
-      {/* ===== SIDEBAR (Fixed Left, all breakpoints) =====
-          Mobile: hidden (w-0) until opened via the TopAppBar hamburger, then a w-64 drawer that
-          stops above the bottom nav (bottom-16) so the two never overlap and the login button
-          at the bottom of the drawer stays fully visible.
-          Desktop (md+): full height (bottom-0), toggled between icon-only (w-16) and labeled (w-64). */}
-      <aside
-        className={`
-          flex flex-col fixed left-0 top-0 bottom-16 md:bottom-0 bg-sidebar drop-shadow-sm
-          text-sidebar-foreground transition-all duration-300 ease-in-out z-50 overflow-hidden
-          ${isMobileMenuOpen ? "w-48" : "w-0"}
-          ${isCollapsed ? "md:w-16" : "md:w-64"}
-          md:overflow-visible
-        `}
-      >
-        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-          {/* Desktop icon-only/labeled toggle */}
-          <button
-            type="button"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden md:inline-flex appearance-none px-2 rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            {isCollapsed ? <Menu size={20} /> : <X size={20} />}
-          </button>
-          {/* Mobile drawer close button */}
-          <button
-            type="button"
-            onClick={closeMobileMenu}
-            aria-label="Close menu"
-            className="md:hidden appearance-none rounded-md hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map(({ to, icon: Icon, label }) => (
+                  <SidebarMenuItem key={to}>
+                    <SidebarMenuButton asChild isActive={pathname === to} tooltip={label}>
+                      <Link to={to}>
+                        <Icon />
+                        <span className="group-data-[collapsible=icon]:hidden">{label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        <nav className="mt-4">
-          {navItems.map(({ to, icon: Icon, label }) => {
-            return (
-              <Link
-                key={to}
-                to={to}
-                onClick={closeMobileMenu}
-                activeProps={{ className: "bg-sidebar-primary text-sidebar-primary-foreground" }}
-                className={`
-                  flex items-center gap-3 pl-3.5 py-3 m-2 rounded-md
-                  transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                `}
-              >
-                <Icon size={20} className="min-w-5" />
-                {showLabels && <span className="truncate">{label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="w-full mt-auto p-2 border-t border-sidebar-border">
-          <ThemeToggle showLabel={showLabels} />
-          {isVerifying ? null : isAuthenticated ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`
-                  flex w-full items-center justify-start gap-3 appearance-none px-4 py-3 rounded-md
-                  transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                `}
-            >
-              <LogOutIcon size={20} className="min-w-5" />
-              {showLabels && <span className="truncate">Log out ({username})</span>}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsLoginOpen(true)}
-              className={`
-                  flex w-full items-center justify-start gap-3 appearance-none px-4 py-3 rounded-md
-                  transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
-                `}
-            >
-              <User size={20} className="min-w-5" />
-              {showLabels && <span className="truncate">Log in</span>}
-            </button>
+        <SidebarFooter>
+          {showLocationPicker && (
+            <>
+              <LocationPicker showLabel={showLabels} />
+              <SidebarSeparator />
+            </>
           )}
-        </div>
-      </aside>
+          {isCollapsed && (
+            <div className="flex justify-center">
+              <ThemeToggle />
+            </div>
+          )}
+          {isVerifying ? null : isAuthenticated ? (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout} tooltip={`Log out (${username})`}>
+                  <LogOutIcon />
+                  <span className="group-data-[collapsible=icon]:hidden">Log out ({username})</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          ) : (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setIsLoginOpen(true)} tooltip="Log in">
+                  <User />
+                  <span className="group-data-[collapsible=icon]:hidden">Log in</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          )}
+        </SidebarFooter>
+      </SidebarPrimitive>
 
       <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
 
-      {/* ===== MOBILE BOTTOM NAV (Fixed Bottom, mobile-only, in addition to the sidebar) =====
-          Fixed h-16 so the sidebar drawer's bottom-16 offset lines up exactly, with no gap or overlap. */}
+      {/* ===== MOBILE BOTTOM NAV (Fixed Bottom, mobile-only) =====
+          Primary navigation on small screens — separate from the sidebar drawer above,
+          which mobile still reaches via the hamburger for location/login. */}
       <nav
         className={`
           md:hidden fixed bottom-0 left-0 right-0 h-16 bg-sidebar drop-shadow-sm
-          text-sidebar-foreground z-50 safe-area-inset-bottom
+          text-sidebar-foreground z-30 safe-area-inset-bottom
         `}
       >
         <div className={`grid h-full ${gridColsClass} py-2`}>
@@ -156,7 +152,7 @@ export default function Sidebar() {
                     <span
                       className={`
                           flex items-center justify-center rounded-xl px-3 p-1 transition-colors
-                          ${isActive ? "bg-sidebar-primary text-sidebar-primary-foreground" : ""}
+                          ${isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold" : ""}
                         `}
                     >
                       <Icon size={20} />

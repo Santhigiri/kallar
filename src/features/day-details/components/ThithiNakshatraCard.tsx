@@ -1,0 +1,67 @@
+import type { KollavarshamDate, Nakshatra, NakshatraTransition, Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
+import { getFormattedTime } from "@/lib/utils"
+import { Card, CardContent } from "@/components/ui/card"
+
+type ThithiNakshatraCardProps = {
+  thithi: Thithi
+  thithiTransitions: Array<ThithiTransition>
+  nakshatra: Nakshatra
+  nakshatraTransitions: Array<NakshatraTransition>
+  kv: KollavarshamDate
+  timeZone?: string
+}
+
+// The transition list is chronological, so the first entry matching the
+// current thithi/nakshatra name is the one currently in effect — its
+// end_time is when it hands off to the next one ("until h:mm a").
+function currentWindowEnd<T extends { end_time: string | null }>(
+  transitions: Array<T & { name: string }>,
+  currentName: string
+): string | null {
+  return transitions.find((t) => t.name === currentName)?.end_time ?? null
+}
+
+export default function ThithiNakshatraCard({
+  thithi,
+  thithiTransitions,
+  nakshatra,
+  nakshatraTransitions,
+  kv,
+  timeZone,
+}: ThithiNakshatraCardProps) {
+  const thithiEnd = currentWindowEnd(
+    thithiTransitions.map((t) => ({ ...t, name: t.thithi.en })),
+    thithi.en
+  )
+  const nakshatraEnd = currentWindowEnd(
+    nakshatraTransitions.map((t) => ({ ...t, name: t.nakshatra.en })),
+    nakshatra.en
+  )
+
+  return (
+    <Card className="gap-4 rounded-md bg-accent-100 py-6">
+      <CardContent className="flex flex-col gap-4">
+        <p className="text-xs font-semibold tracking-wide text-accent-700 uppercase">Thithi &amp; Nakshatra</p>
+        <div className="flex gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] tracking-wide text-accent-700 uppercase">Thithi</p>
+            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{thithi.en}</p>
+            <p className="mt-0.5 text-xs text-accent-700">{thithi.paksha.en}</p>
+            {thithiEnd && (
+              <p className="mt-1.5 text-xs text-muted-foreground">until {getFormattedTime(thithiEnd, timeZone)}</p>
+            )}
+          </div>
+          <div className="w-px shrink-0 bg-border" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] tracking-wide text-accent-700 uppercase">Nakshatra</p>
+            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{nakshatra.en}</p>
+            <p className="mt-0.5 text-xs text-accent-700">{kv.kv_month_name_en}</p>
+            {nakshatraEnd && (
+              <p className="mt-1.5 text-xs text-muted-foreground">until {getFormattedTime(nakshatraEnd, timeZone)}</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
