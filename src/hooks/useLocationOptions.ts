@@ -25,6 +25,7 @@ export function useLocationOptions() {
         latitude: ipLocation.latitude,
         longitude: ipLocation.longitude,
         timezone: ipLocation.timezone,
+        timezoneAbbreviation: ipLocation.timezoneAbbreviation,
       })
     }
     return list

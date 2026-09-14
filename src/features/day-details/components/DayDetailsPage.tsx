@@ -52,7 +52,7 @@ export default function DayDetailsPage() {
   const { locationCode } = useSelectedLocation();
   const { options: locationOptions } = useLocationOptions();
   const selectedLocation = locationOptions.find((location) => location.code === locationCode);
-  const { sunrise, sunset, timeZone } = useLocalSunriseSunset(activeDate, selectedLocation);
+  const { sunrise, sunset, timeZone, timeZoneAbbreviation } = useLocalSunriseSunset(activeDate, selectedLocation);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const isToday = isTodayFn(activeDate);
 
@@ -166,6 +166,7 @@ export default function DayDetailsPage() {
               nakshatraTransitions={activeDateData.nakshatra_transitions}
               kv={activeDateData.kv}
               timeZone={timeZone}
+              timeZoneAbbreviation={timeZoneAbbreviation}
             />
           ) : (
             <ThithiNakshatraCardSkeleton />
@@ -176,6 +177,7 @@ export default function DayDetailsPage() {
               sunrise={sunrise}
               sunset={sunset}
               timeZone={timeZone}
+              timeZoneAbbreviation={timeZoneAbbreviation}
               nazhika={activeDateData?.nazhika_from_sunrise}
             />
           ) : (
@@ -187,6 +189,7 @@ export default function DayDetailsPage() {
               transitions={activeDateData.thithi_transitions}
               current_thithi={activeDateData.thithi}
               timeZone={timeZone}
+              timeZoneAbbreviation={timeZoneAbbreviation}
             />
           ) : (
             <CompactTransitionRowSkeleton />
@@ -197,6 +200,7 @@ export default function DayDetailsPage() {
               transitions={activeDateData.nakshatra_transitions}
               current_nakshatra={activeDateData.nakshatra}
               timeZone={timeZone}
+              timeZoneAbbreviation={timeZoneAbbreviation}
             />
           ) : (
             <CompactTransitionRowSkeleton />
