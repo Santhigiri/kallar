@@ -51,23 +51,19 @@ export function getFormattedDateTime(
 }
 
 
-function getDateKeyInTimeZone(date: Date, timeZone?: string): string {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    ...(timeZone ? { timeZone } : {}),
-  };
-
-  return new Intl.DateTimeFormat('en-CA', options).format(date)
-}
-
 export function getFormattedTimeWithRelativeDay(datetime: string, timeZone?: string): string {
   const time = getFormattedTime(datetime, timeZone)
 
-  const targetKey = getDateKeyInTimeZone(new Date(datetime), timeZone)
-  const todayKey = getDateKeyInTimeZone(new Date(), timeZone)
+  // "Today"/"tomorrow" are relative to the viewer's own calendar day (same
+  // notion the rest of the app uses, e.g. dateToKey/isToday), not the day in
+  // `timeZone` — a viewer far behind the displayed location (e.g. Canada
+  // viewing Santhigiri's IST times) would otherwise get the location's
+  // already-rolled-over date instead of their own "today".
+  const target = new Date(datetime)
+  const now = new Date()
 
-  const toUtcDays = (key: string) => Date.UTC(...key.split('-').map(Number) as [number, number, number]) / 86400000
-  const dayDiff = toUtcDays(targetKey) - toUtcDays(todayKey)
+  const toLocalDays = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000
+  const dayDiff = toLocalDays(target) - toLocalDays(now)
 
   if (dayDiff === 0) return `today, ${time}`
   if (dayDiff === 1) return `tomorrow, ${time}`
