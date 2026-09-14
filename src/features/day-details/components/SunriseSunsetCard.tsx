@@ -15,10 +15,11 @@ type SunriseSunsetProps = {
   sunrise: ISODatetime,
   sunset: ISODatetime,
   timeZone?: string,
+  timeZoneAbbreviation?: string,
   nazhika?: number,
 }
 
-export default function SunriseSunsetCard({ sunrise, sunset, timeZone, nazhika }: SunriseSunsetProps): ReactNode {
+export default function SunriseSunsetCard({ sunrise, sunset, timeZone, timeZoneAbbreviation, nazhika }: SunriseSunsetProps): ReactNode {
   const sunriseDate = parseISO(sunrise)
   const sunsetDate = parseISO(sunset)
   const now = new Date()
@@ -51,12 +52,12 @@ export default function SunriseSunsetCard({ sunrise, sunset, timeZone, nazhika }
           <div className="flex flex-col items-start gap-0.5">
             <SunriseIcon className="h-5 w-5 text-primary" />
             <p className="font-inter text-muted-foreground text-[12px] font-semibold">SUNRISE</p>
-            <p className="font-inter text-sm font-medium">{getFormattedTime(sunrise, timeZone)}</p>
+            <p className="font-inter text-sm font-medium">{getFormattedTime(sunrise, timeZone, true, timeZoneAbbreviation)}</p>
           </div>
           <div className="flex flex-col items-end gap-0.5">
             <SunsetIcon className="h-5 w-5 text-primary" />
             <p className="font-inter text-muted-foreground text-[12px] font-semibold">SUNSET</p>
-            <p className="font-inter text-sm font-medium">{getFormattedTime(sunset, timeZone)}</p>
+            <p className="font-inter text-sm font-medium">{getFormattedTime(sunset, timeZone, true, timeZoneAbbreviation)}</p>
           </div>
         </div>
 
