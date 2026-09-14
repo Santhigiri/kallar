@@ -1,5 +1,5 @@
 import type { KollavarshamDate, Nakshatra, NakshatraTransition, Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
-import { getFormattedTime } from "@/lib/utils"
+import { getFormattedTimeWithRelativeDay } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
 type ThithiNakshatraCardProps = {
@@ -48,7 +48,9 @@ export default function ThithiNakshatraCard({
             <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{thithi.en}</p>
             <p className="mt-0.5 text-xs text-accent-700">{thithi.paksha.en}</p>
             {thithiEnd && (
-              <p className="mt-1.5 text-xs text-muted-foreground">until {getFormattedTime(thithiEnd, timeZone)}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                until {getFormattedTimeWithRelativeDay(thithiEnd, timeZone)}
+              </p>
             )}
           </div>
           <div className="w-px shrink-0 bg-border" />
@@ -57,7 +59,9 @@ export default function ThithiNakshatraCard({
             <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{nakshatra.en}</p>
             <p className="mt-0.5 text-xs text-accent-700">{kv.kv_month_name_en}</p>
             {nakshatraEnd && (
-              <p className="mt-1.5 text-xs text-muted-foreground">until {getFormattedTime(nakshatraEnd, timeZone)}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                until {getFormattedTimeWithRelativeDay(nakshatraEnd, timeZone)}
+              </p>
             )}
           </div>
         </div>
