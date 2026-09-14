@@ -9,6 +9,7 @@ type ThithiNakshatraCardProps = {
   nakshatraTransitions: Array<NakshatraTransition>
   kv: KollavarshamDate
   timeZone?: string
+  timeZoneAbbreviation?: string
 }
 
 // The transition list is chronological, so the first entry matching the
@@ -28,6 +29,7 @@ export default function ThithiNakshatraCard({
   nakshatraTransitions,
   kv,
   timeZone,
+  timeZoneAbbreviation,
 }: ThithiNakshatraCardProps) {
   const thithiEnd = currentWindowEnd(
     thithiTransitions.map((t) => ({ ...t, name: t.thithi.en })),
@@ -49,7 +51,7 @@ export default function ThithiNakshatraCard({
             <p className="mt-0.5 text-xs text-accent-700">{thithi.paksha.en}</p>
             {thithiEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                until {getFormattedTimeWithRelativeDay(thithiEnd, timeZone)}
+                until {getFormattedTimeWithRelativeDay(thithiEnd, timeZone, timeZoneAbbreviation)}
               </p>
             )}
           </div>
@@ -60,7 +62,7 @@ export default function ThithiNakshatraCard({
             <p className="mt-0.5 text-xs text-accent-700">{kv.kv_month_name_en}</p>
             {nakshatraEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                until {getFormattedTimeWithRelativeDay(nakshatraEnd, timeZone)}
+                until {getFormattedTimeWithRelativeDay(nakshatraEnd, timeZone, timeZoneAbbreviation)}
               </p>
             )}
           </div>

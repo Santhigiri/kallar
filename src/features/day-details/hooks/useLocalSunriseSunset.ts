@@ -6,6 +6,7 @@ export type SunriseSunsetLocation = {
   latitude: number
   longitude: number
   timezone: string
+  timezoneAbbreviation?: string
 }
 
 // Sunrise/sunset for whichever location is currently selected (the ip-derived
@@ -22,6 +23,7 @@ export function useLocalSunriseSunset(date: Date, location: SunriseSunsetLocatio
     sunrise: sunriseSunsetQuery.data?.sunrise,
     sunset: sunriseSunsetQuery.data?.sunset,
     timeZone: location?.timezone,
+    timeZoneAbbreviation: location?.timezoneAbbreviation,
     isLoading: sunriseSunsetQuery.isLoading,
   }
 }
