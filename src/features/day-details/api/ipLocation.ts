@@ -8,6 +8,7 @@ const ipLocationResponse = z.object({
   longitude: z.number(),
   timezone: z.object({
     id: z.string(),
+    abbr: z.string(),
   }),
 })
 
@@ -15,6 +16,7 @@ export type IpLocation = {
   latitude: number
   longitude: number
   timezone: string
+  timezoneAbbreviation: string
 }
 
 export async function getIpLocation(): Promise<IpLocation> {
@@ -37,5 +39,6 @@ export async function getIpLocation(): Promise<IpLocation> {
     latitude: parsed.latitude,
     longitude: parsed.longitude,
     timezone: parsed.timezone.id,
+    timezoneAbbreviation: parsed.timezone.abbr,
   }
 }

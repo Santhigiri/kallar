@@ -18,41 +18,60 @@ export function getFormattedDate(datetime: string): string {
 }
 
 
-export function getFormattedTime(datetime: string, timeZone?: string, showTimezoneName: boolean = true): string {
+// When `timeZoneAbbreviation` is supplied (the ip-geolocation service's own
+// short name, e.g. "IST"/"EDT") it is used verbatim instead of asking Intl to
+// derive one via `timeZoneName: 'short'` — that option is unreliable for IANA
+// zones without a widely-recognized abbreviation (e.g. it renders
+// "GMT+5:30" for Asia/Kolkata rather than "IST").
+export function getFormattedTime(
+  datetime: string,
+  timeZone?: string,
+  showTimezoneName: boolean = true,
+  timeZoneAbbreviation?: string
+): string {
+  const useComputedTimezoneName = showTimezoneName && !timeZoneAbbreviation
+
   const options: Intl.DateTimeFormatOptions = {
     hour: 'numeric', minute: 'numeric',
     hour12: true,
-    ...(showTimezoneName ? { timeZoneName: 'short' } : {}),
+    ...(useComputedTimezoneName ? { timeZoneName: 'short' } : {}),
     ...(timeZone ? { timeZone } : {}),
   };
 
-  return new Date(datetime).toLocaleTimeString(getLocaleForTimezone(timeZone), options)
+  const formatted = new Date(datetime).toLocaleTimeString(getLocaleForTimezone(timeZone), options)
+
+  return showTimezoneName && timeZoneAbbreviation ? `${formatted} ${timeZoneAbbreviation}` : formatted
 }
 
 export function getFormattedDateTime(
   datetime: string | null,
   timeZone?: string,
-  showTimezoneName: boolean = false
+  showTimezoneName: boolean = false,
+  timeZoneAbbreviation?: string
 ): string {
 
   if (datetime === null) return ""
+
+  const useComputedTimezoneName = showTimezoneName && !timeZoneAbbreviation
 
   const options: Intl.DateTimeFormatOptions = {
     month: 'short', day: 'numeric',
     hour: 'numeric', minute: 'numeric',
     hour12: true,
-    ...(showTimezoneName ? { timeZoneName: 'short' } : {}),
+    ...(useComputedTimezoneName ? { timeZoneName: 'short' } : {}),
     ...(timeZone ? { timeZone } : {}),
   };
 
   const locale = 'en-IN'
 
-  return new Date(datetime).toLocaleString(locale, options)
+  const formatted = new Date(datetime).toLocaleString(locale, options)
+
+  return showTimezoneName && timeZoneAbbreviation ? `${formatted} ${timeZoneAbbreviation}` : formatted
 }
 
 
-export function getFormattedTimeWithRelativeDay(datetime: string, timeZone?: string): string {
-  const time = getFormattedTime(datetime, timeZone)
+export function getFormattedTimeWithRelativeDay(datetime: string, timeZone?: string, timeZoneAbbreviation?: string): string {
+  const time = getFormattedTime(datetime, timeZone, true, timeZoneAbbreviation)
 
   // "Today"/"tomorrow" are relative to the viewer's own calendar day (same
   // notion the rest of the app uses, e.g. dateToKey/isToday), not the day in
