@@ -13,3 +13,18 @@ export const sunriseSunsetData = z.object({
 })
 
 export type SunriseSunsetData = z.infer<typeof sunriseSunsetData>
+
+const sunriseSunsetDay = z.object({
+  sunrise: isoDatetime,
+  sunset: isoDatetime,
+})
+
+export const sunriseSunsetRangeData = z.object({
+  latitude: z.number(),
+  longitude: z.number(),
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
+  results: z.record(z.iso.date(), sunriseSunsetDay),
+})
+
+export type SunriseSunsetRangeData = z.infer<typeof sunriseSunsetRangeData>

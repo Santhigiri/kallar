@@ -51,6 +51,37 @@ export function getFormattedDateTime(
 }
 
 
+function getDateKeyInTimeZone(date: Date, timeZone?: string): string {
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    ...(timeZone ? { timeZone } : {}),
+  };
+
+  return new Intl.DateTimeFormat('en-CA', options).format(date)
+}
+
+export function getFormattedTimeWithRelativeDay(datetime: string, timeZone?: string): string {
+  const time = getFormattedTime(datetime, timeZone)
+
+  const targetKey = getDateKeyInTimeZone(new Date(datetime), timeZone)
+  const todayKey = getDateKeyInTimeZone(new Date(), timeZone)
+
+  const toUtcDays = (key: string) => Date.UTC(...key.split('-').map(Number) as [number, number, number]) / 86400000
+  const dayDiff = toUtcDays(targetKey) - toUtcDays(todayKey)
+
+  if (dayDiff === 0) return `today, ${time}`
+  if (dayDiff === 1) return `tomorrow, ${time}`
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    month: 'short', day: 'numeric',
+    ...(timeZone ? { timeZone } : {}),
+  };
+
+  const dateStr = new Intl.DateTimeFormat('en-IN', dateOptions).format(new Date(datetime))
+
+  return `${dateStr}, ${time}`
+}
+
 export function addDay(dt: Date, offset: number): Date {
   const result = new Date(dt)
   result.setDate(result.getDate() + offset)
