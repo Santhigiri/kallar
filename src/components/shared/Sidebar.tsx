@@ -11,9 +11,12 @@ import {
 import { useEffect, useRef, useState } from "react"
 import type { LucideIcon } from "lucide-react"
 import { LoginDialog } from "@/features/auth/components/LoginDialog"
+import { SignupDialog } from "@/features/auth/components/SignupDialog"
+import { ForgotPasswordDialog } from "@/features/auth/components/ForgotPasswordDialog"
 import ThemeToggle from "@/components/shared/ThemeToggle"
 import LocationPicker from "@/components/shared/LocationPicker"
 import { useAuth } from "@/features/auth/hooks/useAuth"
+import { isAtLeast } from "@/lib/auth/roles"
 import {
   SidebarContent,
   SidebarFooter,
@@ -50,13 +53,14 @@ export default function Sidebar() {
   const { state, isMobile, setOpen } = useSidebar()
   const sidebarRef = useRef<HTMLDivElement>(null)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const { isAuthenticated, isVerifying, username, role, logout } = useAuth()
+  const [isSignupOpen, setIsSignupOpen] = useState(false)
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false)
+  const { isAuthenticated, isVerifying, displayName, role, logout } = useAuth()
   const pathname = useRouterState({
     select: (routerState) => routerState.location.pathname,
   })
   const navigate = useNavigate()
-  const navItems =
-    role === "admin" ? [...baseNavItems, ...adminNavItems] : baseNavItems
+  const navItems = isAtLeast(role, "ADMIN") ? [...baseNavItems, ...adminNavItems] : baseNavItems
   // The mobile sidebar is a full-width sheet, not an icon rail — labels
   // always show there regardless of the desktop expand/collapse state.
   const showLabels = isMobile || state === "expanded"
@@ -154,11 +158,11 @@ export default function Sidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleLogout}
-                    tooltip={`Log out (${username})`}
+                    tooltip={displayName ? `Log out (${displayName})` : "Log out"}
                   >
                     <LogOutIcon />
                     <span className="group-data-[collapsible=icon]:hidden">
-                      Log out ({username})
+                      {displayName ? `Log out (${displayName})` : "Log out"}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -182,7 +186,23 @@ export default function Sidebar() {
         </SidebarPrimitive>
       </div>
 
-      <LoginDialog open={isLoginOpen} onOpenChange={setIsLoginOpen} />
+      <LoginDialog
+        open={isLoginOpen}
+        onOpenChange={setIsLoginOpen}
+        onForgotPassword={() => {
+          setIsLoginOpen(false)
+          setIsForgotPasswordOpen(true)
+        }}
+        onSignUp={() => {
+          setIsLoginOpen(false)
+          setIsSignupOpen(true)
+        }}
+      />
+      <SignupDialog open={isSignupOpen} onOpenChange={setIsSignupOpen} />
+      <ForgotPasswordDialog
+        open={isForgotPasswordOpen}
+        onOpenChange={setIsForgotPasswordOpen}
+      />
 
       {/* ===== MOBILE BOTTOM NAV (Fixed Bottom, mobile-only) =====
           Primary navigation on small screens — separate from the sidebar drawer above,

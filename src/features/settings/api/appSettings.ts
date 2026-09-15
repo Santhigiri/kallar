@@ -2,6 +2,8 @@ import { appSetting, appSettingList } from "../schemas/appSettings"
 import type { AppSetting } from "../schemas/appSettings"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
+import { authorizedFetch } from "@/lib/http/authorizedFetch"
+import { getAccessToken } from "@/lib/auth/tokenStore"
 
 export const APP_SETTINGS_CACHE_KEY = "app-settings"
 
@@ -35,15 +37,16 @@ async function handleErrors(response: Response) {
 }
 
 // Every /api/v1/settings endpoint requires the admin role, including reads
-// (see panchangam-api's api/routes/v1/settings.py), so both of these send
-// credentials. The list is now ETag-validated: fetchWithEtag hands back the
+// (see panchangam-api's api/routes/v1/settings.py), so both attach the bearer
+// access token. The list is now ETag-validated: fetchWithEtag hands back the
 // cached value instantly (if any) and revalidates in the background via
 // onBackgroundUpdate.
 export function getAppSettings(
   onBackgroundUpdate?: (data: Array<AppSetting>) => void
 ): Promise<Array<AppSetting>> {
+  const token = getAccessToken()
   return fetchWithEtag(`${APP_BASE_URL}/api/v1/settings`, APP_SETTINGS_CACHE_KEY, appSettingList, {
-    credentials: "include",
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     handleErrors,
     onBackgroundUpdate,
   })
@@ -53,13 +56,12 @@ export async function updateAppSetting(
   key: string,
   value: Record<string, unknown>
 ): Promise<AppSetting> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/settings/${encodeURIComponent(key)}`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/settings/${encodeURIComponent(key)}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    credentials: "include",
     body: JSON.stringify({ value }),
   })
   await handleErrors(response)

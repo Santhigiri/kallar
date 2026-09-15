@@ -7,6 +7,7 @@ import type {
   SanthigiriEventGenerateProgress,
   SanthigiriEventGenerateResult,
 } from "../schemas/santhigiriEvent"
+import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
@@ -49,13 +50,12 @@ async function handleErrors(response: Response) {
 }
 
 export async function createSanthigiriEvent(values: SanthigiriEventFormValues) {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/panchangam/events`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/panchangam/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(values),
   })
 
@@ -68,7 +68,7 @@ export async function updateSanthigiriEvent(
   eventId: string,
   values: Omit<SanthigiriEventFormValues, "id">
 ) {
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
     {
       method: "PUT",
@@ -76,7 +76,6 @@ export async function updateSanthigiriEvent(
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      credentials: "include",
       body: JSON.stringify(values),
     }
   )
@@ -87,11 +86,10 @@ export async function updateSanthigiriEvent(
 }
 
 export async function deleteSanthigiriEvent(eventId: string) {
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
     {
       method: "DELETE",
-      credentials: "include",
     }
   )
 
@@ -106,7 +104,7 @@ export async function generateSanthigiriEventOccurrences(
   endYear: number,
   onProgress?: (progress: SanthigiriEventGenerateProgress) => void
 ): Promise<SanthigiriEventGenerateResult> {
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}/occurrences/stream`,
     {
       method: "POST",
@@ -114,7 +112,6 @@ export async function generateSanthigiriEventOccurrences(
         "Content-Type": "application/json",
         Accept: "application/x-ndjson",
       },
-      credentials: "include",
       body: JSON.stringify({ start_year: startYear, end_year: endYear }),
     }
   )

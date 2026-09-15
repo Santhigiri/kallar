@@ -1,43 +1,63 @@
 import { toast } from "sonner"
 import { createContext, useContext, useEffect, useState } from "react"
 import type { ReactNode } from "react"
-import {
-  getCurrentUser,
-  login as loginRequest,
-  logout as logoutRequest,
-  refreshSession,
-} from "@/features/auth/api/auth"
-
-// The access & refresh tokens live in HTTP-only cookies that JavaScript cannot
-// read. We keep only the non-sensitive username/role in localStorage so the UI
-// can show who is logged in across reloads; the cookies are the real credential.
-const USERNAME_KEY = "panchangam.username"
-const ROLE_KEY = "panchangam.role"
+import type { AuthTokens, Identifier } from "@/features/auth/schemas/auth"
+import { getProfile, login as loginRequest, logout as logoutRequest } from "@/features/auth/api/auth"
+import { decodeAccessToken } from "@/lib/auth/jwt"
+import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
+import { clearRefreshToken, getRefreshToken, setRefreshToken } from "@/lib/auth/refreshTokenCookie"
+import { setAccessToken } from "@/lib/auth/tokenStore"
 
 type AuthStatus = "verifying" | "authenticated" | "unauthenticated"
 
 type AuthContextValue = {
-  username: string | null
+  userId: string | null
   role: string | null
+  displayName: string | null
   isAuthenticated: boolean
   isVerifying: boolean
-  login: (username: string, password: string) => Promise<void>
+  login: (identifier: Identifier, password: string) => Promise<void>
+  applySignupTokens: (tokens: AuthTokens) => Promise<void>
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // A cached username only means we *might* still have a valid session — the
-  // access token cookie it was set alongside may have expired since. So the
-  // cache is used only to decide whether it's worth verifying, never to
-  // render admin UI directly: username/role start null and are only trusted
-  // once the server confirms them (see the effect below).
   const [status, setStatus] = useState<AuthStatus>(() =>
-    localStorage.getItem(USERNAME_KEY) ? "verifying" : "unauthenticated"
+    getRefreshToken() ? "verifying" : "unauthenticated"
   )
-  const [username, setUsername] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [role, setRole] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  async function applyTokens(tokens: AuthTokens) {
+    const claims = decodeAccessToken(tokens.accessToken)
+    if (!claims) {
+      throw new Error("Received an unreadable access token")
+    }
+    setRefreshToken(tokens.refreshToken)
+    setAccessToken(tokens.accessToken)
+    setUserId(claims.userId)
+    setRole(claims.role)
+    try {
+      const profile = await getProfile()
+      setDisplayName(`${profile.basic.firstName} ${profile.basic.lastName}`.trim())
+    } catch {
+      // Non-fatal — the session is still valid without a display name.
+      setDisplayName(null)
+    }
+    setStatus("authenticated")
+  }
+
+  function clearSession() {
+    clearRefreshToken()
+    setAccessToken(null)
+    setUserId(null)
+    setRole(null)
+    setDisplayName(null)
+    setStatus("unauthenticated")
+  }
 
   useEffect(() => {
     if (status !== "verifying") return
@@ -45,25 +65,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function verify() {
-      let user = await getCurrentUser()
-      if (!user && (await refreshSession())) {
-        user = await getCurrentUser()
-      }
-      if (cancelled) return
+      const accessToken = await refreshAccessToken()
+      const claims = accessToken ? decodeAccessToken(accessToken) : null
 
-      if (user) {
-        localStorage.setItem(USERNAME_KEY, user.username)
-        localStorage.setItem(ROLE_KEY, user.role)
-        setUsername(user.username)
-        setRole(user.role)
-        setStatus("authenticated")
-      } else {
-        localStorage.removeItem(USERNAME_KEY)
-        localStorage.removeItem(ROLE_KEY)
-        // Best-effort cookie cleanup; safe to call without a valid session.
-        logoutRequest().catch(() => {})
-        setStatus("unauthenticated")
+      if (!claims) {
+        if (!cancelled) clearSession()
+        return
       }
+
+      const name = await getProfile()
+        .then((profile) => `${profile.basic.firstName} ${profile.basic.lastName}`.trim())
+        .catch(() => null)
+
+      if (cancelled) return
+      setUserId(claims.userId)
+      setRole(claims.role)
+      setDisplayName(name)
+      setStatus("authenticated")
     }
 
     verify()
@@ -72,25 +90,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [status])
 
-  async function login(loginUsername: string, password: string) {
-    const user = await loginRequest(loginUsername, password)
-    localStorage.setItem(USERNAME_KEY, user.username)
-    localStorage.setItem(ROLE_KEY, user.role)
-    setUsername(user.username)
-    setRole(user.role)
-    setStatus("authenticated")
-    toast.success(`Logged in as ${user.username}`)
+  async function login(identifier: Identifier, password: string) {
+    const tokens = await loginRequest(identifier, password)
+    await applyTokens(tokens)
+    toast.success("Logged in")
+  }
+
+  async function applySignupTokens(tokens: AuthTokens) {
+    await applyTokens(tokens)
+    toast.success("Account created")
   }
 
   async function logout() {
+    const refreshToken = getRefreshToken()
     try {
-      await logoutRequest()
+      if (refreshToken) await logoutRequest(refreshToken)
     } finally {
-      localStorage.removeItem(USERNAME_KEY)
-      localStorage.removeItem(ROLE_KEY)
-      setUsername(null)
-      setRole(null)
-      setStatus("unauthenticated")
+      clearSession()
       toast.success("Logged out")
     }
   }
@@ -98,11 +114,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        username,
+        userId,
         role,
+        displayName,
         isAuthenticated: status === "authenticated",
         isVerifying: status === "verifying",
         login,
+        applySignupTokens,
         logout,
       }}
     >

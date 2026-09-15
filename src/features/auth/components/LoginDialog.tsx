@@ -1,5 +1,6 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
+import type { Identifier } from "@/features/auth/schemas/auth"
 import {
   Dialog,
   DialogContent,
@@ -12,21 +13,24 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { InvalidCredentialsError } from "@/features/auth/api/auth"
+import { IdentifierFields } from "@/features/auth/components/IdentifierFields"
 
 type LoginDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
+  onForgotPassword: () => void
+  onSignUp: () => void
 }
 
-export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: LoginDialogProps) {
   const { login } = useAuth()
-  const [username, setUsername] = useState("")
+  const [identifier, setIdentifier] = useState<Identifier>({ email: "" })
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function resetAndClose() {
-    setUsername("")
+    setIdentifier({ email: "" })
     setPassword("")
     setError(null)
     setIsSubmitting(false)
@@ -38,7 +42,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     setError(null)
     setIsSubmitting(true)
     try {
-      await login(username, password)
+      await login(identifier, password)
       resetAndClose()
     } catch (err) {
       setError(
@@ -64,22 +68,12 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         <DialogHeader>
           <DialogTitle>Log in</DialogTitle>
           <DialogDescription>
-            Enter your username and password to continue.
+            Enter your email or phone and password to continue.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="login-username">Username</FieldLabel>
-              <Input
-                id="login-username"
-                autoComplete="username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                autoFocus
-              />
-            </Field>
+            <IdentifierFields identifier={identifier} onChange={setIdentifier} idPrefix="login" />
             <Field>
               <FieldLabel htmlFor="login-password">Password</FieldLabel>
               <Input
@@ -95,6 +89,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Logging in..." : "Log in"}
             </Button>
+            <div className="flex justify-between">
+              <Button type="button" variant="link" className="px-0" onClick={onForgotPassword}>
+                Forgot password?
+              </Button>
+              <Button type="button" variant="link" className="px-0" onClick={onSignUp}>
+                Sign up
+              </Button>
+            </div>
           </FieldGroup>
         </form>
       </DialogContent>
