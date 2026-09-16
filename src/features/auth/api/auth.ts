@@ -81,7 +81,7 @@ export async function completeSignup(
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      Authorization: `Signup ${signupToken}`,
+      Authorization: `Bearer ${signupToken}`,
     },
     body: JSON.stringify(profile),
   })
