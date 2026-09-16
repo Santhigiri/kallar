@@ -4,6 +4,9 @@ import type * as z from "zod"
 type FetchWithEtagOptions<T> = {
   onBackgroundUpdate?: (data: T) => void
   credentials?: RequestCredentials
+  // Extra request headers, e.g. a bearer Authorization header for
+  // admin-only-even-for-reads endpoints (see features/settings/api/appSettings.ts).
+  headers?: HeadersInit
   // Called for a non-ok, non-304 response before the generic fallback error
   // is thrown — lets callers surface endpoint-specific errors (401/403/404).
   handleErrors?: (response: Response) => Promise<void>
@@ -14,13 +17,14 @@ async function fetchAndCache<T>(
   cacheKey: string,
   schema: z.ZodType<T>,
   etag: string | null,
-  options: Pick<FetchWithEtagOptions<T>, "credentials" | "handleErrors">
+  options: Pick<FetchWithEtagOptions<T>, "credentials" | "headers" | "handleErrors">
 ): Promise<T | null> {
   const response = await fetch(url, {
     method: "GET",
     headers: {
       Accept: "application/json",
       ...(etag ? { "If-None-Match": etag } : {}),
+      ...options.headers,
     },
     ...(options.credentials ? { credentials: options.credentials } : {}),
   })

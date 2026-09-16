@@ -3,6 +3,7 @@ import * as z from "zod"
 import { compactPanchangamData, panchangamGenerateLine } from "../schemas/compactPanchangamData"
 import type { PanchangamGenerateProgress, panchangamGenerateResult } from "../schemas/compactPanchangamData"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
+import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const compactPanchangamMonth = z.record(z.string(), compactPanchangamData)
@@ -55,7 +56,7 @@ export async function generatePanchangam(
   location: string,
   onProgress?: (progress: PanchangamGenerateProgress) => void
 ) {
-  const response = await fetch(
+  const response = await authorizedFetch(
     `${APP_BASE_URL}/api/v1/panchangam/generate?location=${location}`,
     {
       method: "POST",
@@ -63,7 +64,6 @@ export async function generatePanchangam(
         "Content-Type": "application/json",
         Accept: "application/x-ndjson",
       },
-      credentials: "include",
       body: JSON.stringify({
         start_date: dateKey(startDate),
         end_date: dateKey(endDate),

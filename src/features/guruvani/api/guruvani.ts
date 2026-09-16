@@ -2,6 +2,7 @@ import * as z from "zod"
 import { guruvani } from "../schemas/guruvani"
 import { readGuruvaniOfTheDay, writeGuruvaniOfTheDay } from "./guruvaniCache"
 import type { Guruvani, GuruvaniFormValues } from "../schemas/guruvani"
+import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
@@ -69,13 +70,12 @@ export async function getGuruvaniOfTheDay(dayKey: string): Promise<Guruvani> {
 }
 
 export async function createGuruvani(values: GuruvaniFormValues): Promise<Guruvani> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/guruvani`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(values),
   })
   await handleErrors(response)
@@ -87,13 +87,12 @@ export async function updateGuruvani(
   id: number,
   values: GuruvaniFormValues
 ): Promise<Guruvani> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    credentials: "include",
     body: JSON.stringify(values),
   })
   await handleErrors(response)
@@ -102,9 +101,8 @@ export async function updateGuruvani(
 }
 
 export async function deleteGuruvani(id: number): Promise<void> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
     method: "DELETE",
-    credentials: "include",
   })
   await handleErrors(response)
 }
