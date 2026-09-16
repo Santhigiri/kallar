@@ -48,16 +48,19 @@ jobs:
           echo "ENV=${ENV}" >> $GITHUB_OUTPUT
           echo "Generated tag: ${TAG}, service: ${SERVICE}, env: ${ENV}"
 
-      # --- Select API base URL for this environment ---
+      # --- Select API base URLs for this environment ---
       - name: Select API base URL
         id: apiurl
         run: |
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_DEV }}" >> $GITHUB_OUTPUT
+            echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_DEV }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/release" ]; then
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_STAGING }}" >> $GITHUB_OUTPUT
+            echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_STAGING }}" >> $GITHUB_OUTPUT
           else
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_PROD }}" >> $GITHUB_OUTPUT
+            echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_PROD }}" >> $GITHUB_OUTPUT
           fi
 
       # --- GCP auth ---
@@ -78,6 +81,7 @@ jobs:
           AR_IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}-${{ steps.version.outputs.ENV }}"
           docker build \
             --build-arg VITE_APP_BASE_URL="${{ steps.apiurl.outputs.VITE_APP_BASE_URL }}" \
+            --build-arg VITE_TVM_BASE_URL="${{ steps.apiurl.outputs.VITE_TVM_BASE_URL }}" \
             -t "${AR_IMAGE}:${{ steps.version.outputs.TAG }}" -f Dockerfile .
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             docker tag "${AR_IMAGE}:${{ steps.version.outputs.TAG }}" "${AR_IMAGE}:latest"

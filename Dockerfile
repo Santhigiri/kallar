@@ -6,9 +6,12 @@ COPY package*.json ./
 RUN npm install
 
 
-# Pass the build argument
+# Pass the build arguments
 ARG VITE_APP_BASE_URL
 ENV VITE_APP_BASE_URL=$VITE_APP_BASE_URL
+
+ARG VITE_TVM_BASE_URL
+ENV VITE_TVM_BASE_URL=$VITE_TVM_BASE_URL
 
 COPY . .
 RUN npm run build
