@@ -17,6 +17,7 @@ import ThemeToggle from "@/components/shared/ThemeToggle"
 import LocationPicker from "@/components/shared/LocationPicker"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { isAtLeast } from "@/lib/auth/roles"
+import { APP_ENV, APP_VERSION } from "@/lib/version"
 import {
   SidebarContent,
   SidebarFooter,
@@ -181,6 +182,11 @@ export default function Sidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
+            )}
+            {showLabels && (
+              <p className="truncate px-2 text-[10px] text-muted-foreground">
+                {APP_ENV === "prod" ? APP_VERSION : `${APP_ENV} · ${APP_VERSION}`}
+              </p>
             )}
           </SidebarFooter>
         </SidebarPrimitive>

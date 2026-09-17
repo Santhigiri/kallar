@@ -7,6 +7,10 @@ steps:
       - VITE_APP_BASE_URL=$_VITE_APP_BASE_URL
       - '--build-arg'
       - VITE_TVM_BASE_URL=$_VITE_TVM_BASE_URL
+      - '--build-arg'
+      - VITE_APP_ENV=$_VITE_APP_ENV
+      - '--build-arg'
+      - VITE_APP_VERSION=$COMMIT_SHA
       - '-t'
       - >-
         $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
