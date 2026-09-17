@@ -6,6 +6,8 @@ on:
       - release
       - main
   workflow_dispatch:
+permissions:
+  contents: write
 env:
   IMAGE_NAME: kallar
   GCP_PROJECT: santhigiri-496211
@@ -120,3 +122,11 @@ jobs:
             --image="${AR_IMAGE}:${{ steps.version.outputs.TAG }}" \
             --region=${{ env.GCP_REGION }} \
             --project=${{ env.GCP_PROJECT }}
+
+      # --- Create GitHub Release (prod only) ---
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          generate_release_notes: true
