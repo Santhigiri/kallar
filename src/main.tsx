@@ -13,6 +13,17 @@ import {
 } from '@tanstack/react-router'
 
 import { routeTree } from './routeTree.gen'
+import { logger } from './lib/logger'
+import { APP_ENV, APP_VERSION } from './lib/version'
+
+logger.info('app', `booting ${APP_ENV} build ${APP_VERSION}`)
+
+window.addEventListener('error', (event) => {
+  logger.error('app', 'uncaught error', event.error ?? event.message)
+})
+window.addEventListener('unhandledrejection', (event) => {
+  logger.error('app', 'unhandled promise rejection', event.reason)
+})
 
 const queryClient = new QueryClient()
 

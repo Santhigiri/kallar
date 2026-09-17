@@ -1,5 +1,6 @@
 import { clearEtagCache, readEtagCache, writeEtagCache } from "./etagCache"
 import type * as z from "zod"
+import { logger } from "@/lib/logger"
 
 type FetchWithEtagOptions<T> = {
   onBackgroundUpdate?: (data: T) => void
@@ -34,12 +35,16 @@ async function fetchAndCache<T>(
   }
 
   if (!response.ok) {
+    logger.warn("http", `${response.status} ${response.statusText} — ${url}`)
     await options.handleErrors?.(response)
     throw new Error(`Failed to fetch ${url}`)
   }
 
   const json = await response.json()
-  const data = await schema.parseAsync(json)
+  const data = await schema.parseAsync(json).catch((error: unknown) => {
+    logger.error("http", `response failed schema validation — ${url}`, error)
+    throw error
+  })
 
   const newEtag = response.headers.get("etag")
   if (newEtag) {
@@ -70,9 +75,10 @@ export async function fetchWithEtag<T>(
         .then((data) => {
           if (data !== null) options.onBackgroundUpdate?.(data)
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           // Best-effort — a failed background revalidation just leaves the
           // cached value in place until the next natural refetch retries it.
+          logger.debug("http", `background revalidation failed — ${url}`, error)
         })
 
       return cachedData

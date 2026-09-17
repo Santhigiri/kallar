@@ -84,6 +84,8 @@ jobs:
           docker build \
             --build-arg VITE_APP_BASE_URL="${{ steps.apiurl.outputs.VITE_APP_BASE_URL }}" \
             --build-arg VITE_TVM_BASE_URL="${{ steps.apiurl.outputs.VITE_TVM_BASE_URL }}" \
+            --build-arg VITE_APP_ENV="${{ steps.version.outputs.ENV }}" \
+            --build-arg VITE_APP_VERSION="${{ steps.version.outputs.TAG }}" \
             -t "${AR_IMAGE}:${{ steps.version.outputs.TAG }}" -f Dockerfile .
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
             docker tag "${AR_IMAGE}:${{ steps.version.outputs.TAG }}" "${AR_IMAGE}:latest"

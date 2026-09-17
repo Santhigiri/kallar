@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { registerSW } from "virtual:pwa-register"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { logger } from "@/lib/logger"
 
 export const RefreshPrompt = () => {
   const [needRefresh, setNeedRefresh] = useState(false)
@@ -17,10 +18,14 @@ export const RefreshPrompt = () => {
   // perform a React state update on a component that hasn't mounted yet."
   useEffect(() => {
     const update = registerSW({
-      onNeedRefresh() { setNeedRefresh(true) },
-      onOfflineReady() {},
-      onRegisterError(error) { console.error('SW registration error:', error) },
-      onRegisteredSW(_url, registration) {
+      onNeedRefresh() {
+        logger.info('sw', 'update available, waiting on user confirmation')
+        setNeedRefresh(true)
+      },
+      onOfflineReady() { logger.info('sw', 'offline-ready (precache installed)') },
+      onRegisterError(error) { logger.error('sw', 'registration failed', error) },
+      onRegisteredSW(url, registration) {
+        logger.debug('sw', 'registered', { url, registration })
         // An installed/standalone PWA is usually resumed rather than freshly
         // navigated, so the browser's own update check (which fires on
         // navigation) rarely runs on its own. Relying on a timer alone means an

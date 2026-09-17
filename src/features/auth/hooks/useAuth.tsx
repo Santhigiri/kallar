@@ -7,6 +7,7 @@ import { decodeAccessToken } from "@/lib/auth/jwt"
 import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
 import { clearRefreshToken, getRefreshToken, setRefreshToken } from "@/lib/auth/refreshTokenCookie"
 import { setAccessToken } from "@/lib/auth/tokenStore"
+import { logger } from "@/lib/logger"
 
 type AuthStatus = "verifying" | "authenticated" | "unauthenticated"
 
@@ -43,11 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profile = await getProfile()
       setDisplayName(`${profile.basic.firstName} ${profile.basic.lastName}`.trim())
-    } catch {
+    } catch (error) {
       // Non-fatal — the session is still valid without a display name.
+      logger.warn("auth", "profile fetch failed after auth, continuing without display name", error)
       setDisplayName(null)
     }
     setStatus("authenticated")
+    logger.info("auth", `session established (role=${claims.role})`)
   }
 
   function clearSession() {
@@ -57,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null)
     setDisplayName(null)
     setStatus("unauthenticated")
+    logger.debug("auth", "session cleared")
   }
 
   useEffect(() => {
@@ -69,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const claims = accessToken ? decodeAccessToken(accessToken) : null
 
       if (!claims) {
+        logger.debug("auth", "session verification failed, treating as unauthenticated")
         if (!cancelled) clearSession()
         return
       }
@@ -91,9 +96,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [status])
 
   async function login(identifier: Identifier, password: string) {
-    const tokens = await loginRequest(identifier, password)
-    await applyTokens(tokens)
-    toast.success("Logged in")
+    try {
+      const tokens = await loginRequest(identifier, password)
+      await applyTokens(tokens)
+      toast.success("Logged in")
+    } catch (error) {
+      logger.warn("auth", "login attempt failed", error)
+      throw error
+    }
   }
 
   async function applySignupTokens(tokens: AuthTokens) {
@@ -105,6 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const refreshToken = getRefreshToken()
     try {
       if (refreshToken) await logoutRequest(refreshToken)
+    } catch (error) {
+      logger.warn("auth", "server-side logout call failed", error)
+      throw error
     } finally {
       clearSession()
       toast.success("Logged out")

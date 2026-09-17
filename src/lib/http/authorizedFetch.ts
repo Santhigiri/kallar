@@ -1,5 +1,6 @@
 import { getAccessToken } from "@/lib/auth/tokenStore"
 import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
+import { logger } from "@/lib/logger"
 
 function withAuthHeader(init: RequestInit, token: string | null): RequestInit {
   if (!token) return init
@@ -17,8 +18,12 @@ export async function authorizedFetch(url: string, init: RequestInit = {}): Prom
   const response = await fetch(url, withAuthHeader(init, token))
   if (response.status !== 401) return response
 
+  logger.debug("http", `401 on ${url}, attempting token refresh`)
   const newToken = await refreshAccessToken()
-  if (!newToken) return response
+  if (!newToken) {
+    logger.warn("http", `token refresh failed, returning original 401 — ${url}`)
+    return response
+  }
 
   return fetch(url, withAuthHeader(init, newToken))
 }
