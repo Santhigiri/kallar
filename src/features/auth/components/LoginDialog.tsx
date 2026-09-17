@@ -67,9 +67,7 @@ export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Log in</DialogTitle>
-          <DialogDescription>
-            Enter your email or phone and password to continue.
-          </DialogDescription>
+          <DialogDescription>Enter your email and password to continue.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <FieldGroup>

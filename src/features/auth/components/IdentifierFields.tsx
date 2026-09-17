@@ -9,10 +9,30 @@ type IdentifierFieldsProps = {
   idPrefix: string
 }
 
+// Phone verification isn't wired up on the backend yet — hide the phone tab
+// and force email-only until it's ready. Flip this back on once it is.
+const PHONE_AUTH_ENABLED = false as boolean
+
 // TVM identifies a user by either email or phone — every auth-flow dialog
 // (login, signup, forgot-password) needs the same email/phone picker.
 export function IdentifierFields({ identifier, onChange, idPrefix }: IdentifierFieldsProps) {
   const method = "email" in identifier ? "email" : "phone"
+
+  if (!PHONE_AUTH_ENABLED) {
+    return (
+      <Field>
+        <FieldLabel htmlFor={`${idPrefix}-email`}>Email</FieldLabel>
+        <Input
+          id={`${idPrefix}-email`}
+          type="email"
+          autoComplete="email"
+          value={"email" in identifier ? identifier.email : ""}
+          onChange={(e) => onChange({ email: e.target.value })}
+          required
+        />
+      </Field>
+    )
+  }
 
   return (
     <Tabs

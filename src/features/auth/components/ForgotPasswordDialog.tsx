@@ -95,7 +95,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
         <DialogHeader>
           <DialogTitle>Reset password</DialogTitle>
           <DialogDescription>
-            {step === "identifier" && "Enter your email or phone to receive a reset code."}
+            {step === "identifier" && "Enter your email to receive a reset code."}
             {step === "code" && "Enter the reset code we sent you."}
             {step === "newPassword" && "Choose a new password."}
           </DialogDescription>

@@ -127,7 +127,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
         <DialogHeader>
           <DialogTitle>Sign up</DialogTitle>
           <DialogDescription>
-            {step === "identifier" && "Enter your email or phone to get started."}
+            {step === "identifier" && "Enter your email to get started."}
             {step === "code" && "Enter the verification code we sent you."}
             {step === "profile" && "Tell us a bit about yourself."}
           </DialogDescription>
