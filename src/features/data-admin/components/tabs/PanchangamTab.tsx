@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { usePanchangamMonth } from "@/features/data-admin/hooks/usePanchangamMonth"
+import { isAtLeast } from "@/lib/auth/roles"
 import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants"
 
 const LOCATION = "tvm"
@@ -37,7 +38,7 @@ const YEAR_OPTIONS = Array.from(
 
 export default function PanchangamTab() {
   const { isAuthenticated, role } = useAuth()
-  const isAdmin = role === "admin"
+  const isAdmin = isAtLeast(role, "ADMIN")
 
   const [activeMonth, setActiveMonth] = useState(() => startOfMonth(new Date()))
 

@@ -18,6 +18,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { DataTable } from "@/components/ui/data-table"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useGuruvanis } from "@/features/guruvani/hooks/useGuruvani"
+import { isAtLeast } from "@/lib/auth/roles"
 import {
   useCreateGuruvani,
   useDeleteGuruvani,
@@ -26,7 +27,7 @@ import {
 
 export default function GuruvaniTab() {
   const { role } = useAuth()
-  const isAdmin = role === "admin"
+  const isAdmin = isAtLeast(role, "ADMIN")
 
   const { data, isLoading, isError } = useGuruvanis()
 

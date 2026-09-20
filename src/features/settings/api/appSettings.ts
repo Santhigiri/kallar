@@ -4,6 +4,7 @@ import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { getAccessToken } from "@/lib/auth/tokenStore"
+import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
 
 export const APP_SETTINGS_CACHE_KEY = "app-settings"
 
@@ -49,6 +50,10 @@ export function getAppSettings(
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     handleErrors,
     onBackgroundUpdate,
+    retryUnauthorized: async () => {
+      const newToken = await refreshAccessToken()
+      return newToken ? { Authorization: `Bearer ${newToken}` } : null
+    },
   })
 }
 

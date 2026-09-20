@@ -45,10 +45,8 @@ const baseNavItems: Array<NavItemProps> = [
   { to: "/starfinder", icon: Telescope, label: "Explore" },
 ]
 
-const adminNavItems: Array<NavItemProps> = [
-  { to: "/data", icon: Database, label: "Data" },
-  { to: "/settings", icon: Settings, label: "Settings" },
-]
+const dataNavItem: NavItemProps = { to: "/data", icon: Database, label: "Data" }
+const settingsNavItem: NavItemProps = { to: "/settings", icon: Settings, label: "Settings" }
 
 export default function Sidebar() {
   const { state, isMobile, setOpen } = useSidebar()
@@ -61,12 +59,21 @@ export default function Sidebar() {
     select: (routerState) => routerState.location.pathname,
   })
   const navigate = useNavigate()
-  const navItems = isAtLeast(role, "ADMIN") ? [...baseNavItems, ...adminNavItems] : baseNavItems
+  const navItems = [
+    ...baseNavItems,
+    ...(isAtLeast(role, "EDITOR") ? [dataNavItem] : []),
+    ...(isAtLeast(role, "ADMIN") ? [settingsNavItem] : []),
+  ]
   // The mobile sidebar is a full-width sheet, not an icon rail — labels
   // always show there regardless of the desktop expand/collapse state.
   const showLabels = isMobile || state === "expanded"
   const isCollapsed = !isMobile && state === "collapsed"
-  const gridColsClass = navItems.length === 5 ? "grid-cols-5" : "grid-cols-3"
+  const gridColsClass =
+    navItems.length === 5
+      ? "grid-cols-5"
+      : navItems.length === 4
+        ? "grid-cols-4"
+        : "grid-cols-3"
   // The location picker drives Today's and Calendar's data. Explore has its
   // own independent place search (any location, not just this list), so it
   // stays out of the sidebar there to avoid implying a connection that
