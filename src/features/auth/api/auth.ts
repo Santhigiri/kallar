@@ -148,7 +148,7 @@ export async function resetPassword(resetToken: string, newPassword: string): Pr
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
-      Authorization: `Reset ${resetToken}`,
+      Authorization: `Bearer ${resetToken}`,
     },
     body: JSON.stringify({ newPassword }),
   })
