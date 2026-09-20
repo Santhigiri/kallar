@@ -68,24 +68,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function verify() {
-      const accessToken = await refreshAccessToken()
-      const claims = accessToken ? decodeAccessToken(accessToken) : null
+      try {
+        const accessToken = await refreshAccessToken()
+        const claims = accessToken ? decodeAccessToken(accessToken) : null
 
-      if (!claims) {
-        logger.debug("auth", "session verification failed, treating as unauthenticated")
+        if (!claims) {
+          logger.debug("auth", "session verification failed, treating as unauthenticated")
+          if (!cancelled) clearSession()
+          return
+        }
+
+        const name = await getProfile()
+          .then((profile) => `${profile.basic.firstName} ${profile.basic.lastName}`.trim())
+          .catch(() => null)
+
+        if (cancelled) return
+        setUserId(claims.userId)
+        setRole(claims.role)
+        setDisplayName(name)
+        setStatus("authenticated")
+      } catch (error) {
+        logger.warn("auth", "session verification threw, treating as unauthenticated", error)
         if (!cancelled) clearSession()
-        return
       }
-
-      const name = await getProfile()
-        .then((profile) => `${profile.basic.firstName} ${profile.basic.lastName}`.trim())
-        .catch(() => null)
-
-      if (cancelled) return
-      setUserId(claims.userId)
-      setRole(claims.role)
-      setDisplayName(name)
-      setStatus("authenticated")
     }
 
     verify()
