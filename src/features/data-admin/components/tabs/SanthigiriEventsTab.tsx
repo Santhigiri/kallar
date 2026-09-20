@@ -25,10 +25,11 @@ import {
   useDeleteSanthigiriEvent,
   useUpdateSanthigiriEvent,
 } from "@/features/santhigiri-events/hooks/useSanthigiriEventMutations"
+import { isAtLeast } from "@/lib/auth/roles"
 
 export default function SanthigiriEventsTab() {
   const { role } = useAuth()
-  const isAdmin = role === "admin"
+  const isEditor = isAtLeast(role, "EDITOR")
 
   const { data, isLoading, isError } = useSanthigiriEvents()
 
@@ -43,7 +44,7 @@ export default function SanthigiriEventsTab() {
   const deleteMutation = useDeleteSanthigiriEvent()
 
   const columns = buildSanthigiriEventColumns({
-    isAdmin,
+    canEdit: isEditor,
     onEdit: (event) => setEditingId(event.id),
     onDelete: (event) => setDeletingEvent(event),
     onGenerateOccurrences: (event) => setGeneratingEvent(event),
@@ -53,7 +54,7 @@ export default function SanthigiriEventsTab() {
     <Card>
       <CardHeader>
         <CardTitle>Santhigiri Events</CardTitle>
-        {isAdmin && (
+        {isEditor && (
           <CardAction>
             <Button size="sm" onClick={() => setIsCreateOpen(true)}>
               <Plus />

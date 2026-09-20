@@ -5,14 +5,14 @@ import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santh
 import { Button } from "@/components/ui/button"
 
 type BuildColumnsArgs = {
-  isAdmin: boolean
+  canEdit: boolean
   onEdit: (event: SanthigiriEvent) => void
   onDelete: (event: SanthigiriEvent) => void
   onGenerateOccurrences: (event: SanthigiriEvent) => void
 }
 
 export function buildSanthigiriEventColumns({
-  isAdmin,
+  canEdit,
   onEdit,
   onDelete,
   onGenerateOccurrences,
@@ -33,7 +33,7 @@ export function buildSanthigiriEventColumns({
     },
   ]
 
-  if (isAdmin) {
+  if (canEdit) {
     columns.push({
       id: "actions",
       header: "",

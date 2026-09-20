@@ -3,10 +3,11 @@ import { NakshatraStepDaysCard } from "./NakshatraStepDaysCard"
 import TopAppBar from "@/components/shared/TopAppBar"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { useAppSettings } from "@/features/settings/hooks/useAppSettings"
+import { isAtLeast } from "@/lib/auth/roles"
 
 export default function SettingsPage() {
   const { role } = useAuth()
-  const isAdmin = role === "admin"
+  const isAdmin = isAtLeast(role, "ADMIN")
 
   // Every /api/v1/settings endpoint requires admin, including reads, so
   // there's nothing to fetch (or show) for anyone else.
