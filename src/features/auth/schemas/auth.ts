@@ -1,9 +1,13 @@
 import { z } from "zod"
 
-// TVM's TokenResponse body — note there is no `accessToken` field here. The
-// access token is only ever returned via the `Authorization` response header
-// (never the JSON body), so callers combine this with that header value.
+// TVM's TokenResponse body. `refreshToken` is included for non-browser
+// clients, but the browser never reads or stores it directly — TVM also sets
+// it as an httpOnly, SameSite=Lax cookie (scoped to /api/v1/auth) on the same
+// response, and that cookie is what the browser actually relies on for
+// refresh/logout. Only `accessToken` is meant to be held client-side (in
+// memory — see lib/auth/tokenStore.ts).
 export const tokenResponse = z.object({
+  accessToken: z.string(),
   refreshToken: z.string(),
   userId: z.string(),
   tokenType: z.string(),
@@ -11,7 +15,7 @@ export const tokenResponse = z.object({
 })
 export type TokenResponse = z.infer<typeof tokenResponse>
 
-export type AuthTokens = TokenResponse & { accessToken: string }
+export type AuthTokens = Omit<TokenResponse, "refreshToken">
 
 export const sessionTokenResponse = z.object({ sessionToken: z.string() })
 export const signupTokenResponse = z.object({ token: z.string() })

@@ -1,7 +1,7 @@
 // The TVM access token (1h lifetime) is never persisted — it lives only in
 // this in-memory singleton so plain (non-React) API modules can read it
-// without prop-drilling. It's re-minted from the refresh-token cookie
-// (see refreshTokenCookie.ts) on every page load via refreshAccessToken().
+// without prop-drilling. It's re-minted from TVM's httpOnly refresh-token
+// cookie on every page load via refreshAccessToken().
 let accessToken: string | null = null
 const listeners = new Set<(token: string | null) => void>()
 
