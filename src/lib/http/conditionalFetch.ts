@@ -11,6 +11,28 @@ type FetchWithEtagOptions<T> = {
   // Called for a non-ok, non-304 response before the generic fallback error
   // is thrown — lets callers surface endpoint-specific errors (401/403/404).
   handleErrors?: (response: Response) => Promise<void>
+  // On a 401, called once to mint a fresh access token and retry with it —
+  // mirrors authorizedFetch's silent-refresh-and-retry for admin-only reads
+  // that can't use authorizedFetch directly (this is a GET with its own
+  // stale-while-revalidate caching, not a plain fetch).
+  retryUnauthorized?: () => Promise<HeadersInit | null>
+}
+
+async function fetchOnce(
+  url: string,
+  etag: string | null,
+  headers: HeadersInit | undefined,
+  credentials?: RequestCredentials
+): Promise<Response> {
+  return fetch(url, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      ...(etag ? { "If-None-Match": etag } : {}),
+      ...headers,
+    },
+    ...(credentials ? { credentials } : {}),
+  })
 }
 
 async function fetchAndCache<T>(
@@ -18,17 +40,16 @@ async function fetchAndCache<T>(
   cacheKey: string,
   schema: z.ZodType<T>,
   etag: string | null,
-  options: Pick<FetchWithEtagOptions<T>, "credentials" | "headers" | "handleErrors">
+  options: Pick<FetchWithEtagOptions<T>, "credentials" | "headers" | "handleErrors" | "retryUnauthorized">
 ): Promise<T | null> {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      ...(etag ? { "If-None-Match": etag } : {}),
-      ...options.headers,
-    },
-    ...(options.credentials ? { credentials: options.credentials } : {}),
-  })
+  let response = await fetchOnce(url, etag, options.headers, options.credentials)
+
+  if (response.status === 401 && options.retryUnauthorized) {
+    const freshHeaders = await options.retryUnauthorized()
+    if (freshHeaders) {
+      response = await fetchOnce(url, etag, freshHeaders, options.credentials)
+    }
+  }
 
   if (response.status === 304) {
     return null
