@@ -153,6 +153,10 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                 <Input
                   id="signup-code"
                   autoComplete="one-time-code"
+                  data-1p-ignore
+                  data-lpignore="true"
+                  data-bwignore
+                  data-form-type="other"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
