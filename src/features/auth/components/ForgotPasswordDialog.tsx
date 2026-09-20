@@ -124,6 +124,10 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                 <Input
                   id="forgot-password-code"
                   autoComplete="one-time-code"
+                  data-1p-ignore
+                  data-lpignore="true"
+                  data-bwignore
+                  data-form-type="other"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   required
