@@ -10,6 +10,15 @@ export type AccessTokenClaims = {
   exp: number
 }
 
+// TVM's JWT userId claim is a raw int (see tvm's TokenService.kt), not a
+// string — normalize it here rather than changing the claim type, since
+// TVM's own validateToken() also reads it as an int.
+function normalizeUserId(value: unknown): string | null {
+  if (typeof value === "string") return value
+  if (typeof value === "number" && Number.isFinite(value)) return String(value)
+  return null
+}
+
 function base64UrlDecode(segment: string): string {
   const padded = segment.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(segment.length / 4) * 4, "=")
   return decodeURIComponent(
@@ -25,15 +34,16 @@ export function decodeAccessToken(token: string): AccessTokenClaims | null {
   if (parts.length !== 3) return null
   try {
     const payload = JSON.parse(base64UrlDecode(parts[1]))
+    const userId = normalizeUserId(payload.userId)
     if (
-      typeof payload.userId !== "string" ||
+      userId === null ||
       typeof payload.role !== "string" ||
       typeof payload.isVerified !== "boolean" ||
       typeof payload.exp !== "number"
     ) {
       return null
     }
-    return payload as AccessTokenClaims
+    return { ...payload, userId } as AccessTokenClaims
   } catch {
     return null
   }
