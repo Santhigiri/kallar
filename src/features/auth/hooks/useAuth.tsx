@@ -5,7 +5,6 @@ import type { AuthTokens, Identifier } from "@/features/auth/schemas/auth"
 import { getProfile, login as loginRequest, logout as logoutRequest } from "@/features/auth/api/auth"
 import { decodeAccessToken } from "@/lib/auth/jwt"
 import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
-import { clearRefreshToken, getRefreshToken, setRefreshToken } from "@/lib/auth/refreshTokenCookie"
 import { setAccessToken } from "@/lib/auth/tokenStore"
 import { logger } from "@/lib/logger"
 
@@ -25,9 +24,11 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<AuthStatus>(() =>
-    getRefreshToken() ? "verifying" : "unauthenticated"
-  )
+  // The refresh token lives in TVM's httpOnly cookie now, unreadable from
+  // JS, so there's no way to know client-side whether a session exists
+  // without asking the server. Always start by attempting a silent refresh;
+  // a missing/expired cookie just resolves to "unauthenticated" below.
+  const [status, setStatus] = useState<AuthStatus>("verifying")
   const [userId, setUserId] = useState<string | null>(null)
   const [role, setRole] = useState<string | null>(null)
   const [displayName, setDisplayName] = useState<string | null>(null)
@@ -37,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!claims) {
       throw new Error("Received an unreadable access token")
     }
-    setRefreshToken(tokens.refreshToken)
     setAccessToken(tokens.accessToken)
     setUserId(claims.userId)
     setRole(claims.role)
@@ -54,7 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function clearSession() {
-    clearRefreshToken()
     setAccessToken(null)
     setUserId(null)
     setRole(null)
@@ -112,9 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
-    const refreshToken = getRefreshToken()
     try {
-      if (refreshToken) await logoutRequest(refreshToken)
+      await logoutRequest()
     } catch (error) {
       logger.warn("auth", "server-side logout call failed", error)
       throw error

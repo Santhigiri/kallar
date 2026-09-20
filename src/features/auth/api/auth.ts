@@ -27,16 +27,14 @@ async function parseErrorDetail(response: Response, fallback: string) {
 }
 
 // login/complete-signup/refresh all share this response shape: the access
-// token only ever arrives via the `Authorization` response header, the rest
-// of the pair via the JSON body.
+// token arrives in the JSON body. The refresh token is also present in the
+// body (for non-browser clients) but the browser ignores it — TVM sets it as
+// an httpOnly cookie on the same response, which the browser stores
+// automatically and cannot read from JS.
 async function parseAuthTokens(response: Response): Promise<AuthTokens> {
-  const accessToken = response.headers.get("Authorization")?.replace(/^Bearer /, "")
-  if (!accessToken) {
-    throw new Error("Missing Authorization header in TVM auth response")
-  }
   const json = await response.json()
-  const tokens = await tokenResponse.parseAsync(json.data)
-  return { ...tokens, accessToken }
+  const { refreshToken: _refreshToken, ...tokens } = await tokenResponse.parseAsync(json.data)
+  return tokens
 }
 
 export async function sendVerification(identifier: Identifier): Promise<string> {
@@ -78,6 +76,7 @@ export async function completeSignup(
 ): Promise<AuthTokens> {
   const response = await fetch(`${TVM_BASE_URL}/api/v1/auth/complete-signup`, {
     method: "POST",
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
@@ -94,6 +93,7 @@ export async function completeSignup(
 export async function login(identifier: Identifier, password: string): Promise<AuthTokens> {
   const response = await fetch(`${TVM_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ ...identifier, password }),
   })
@@ -106,11 +106,16 @@ export async function login(identifier: Identifier, password: string): Promise<A
   return parseAuthTokens(response)
 }
 
-export async function logout(refreshToken: string): Promise<void> {
+// TVM reads the refresh token off the httpOnly cookie when the body omits
+// it, and clears the cookie on the response. The body must still be valid
+// JSON (an empty object) since TVM's content negotiation requires one, even
+// though every field of LogoutRequest defaults.
+export async function logout(): Promise<void> {
   await fetch(`${TVM_BASE_URL}/api/v1/auth/logout`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify({}),
   })
 }
 
