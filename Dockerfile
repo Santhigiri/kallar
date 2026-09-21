@@ -13,6 +13,9 @@ ENV VITE_APP_BASE_URL=$VITE_APP_BASE_URL
 ARG VITE_TVM_BASE_URL
 ENV VITE_TVM_BASE_URL=$VITE_TVM_BASE_URL
 
+ARG VITE_KUMILY_BASE_URL
+ENV VITE_KUMILY_BASE_URL=$VITE_KUMILY_BASE_URL
+
 # Build identity (dev/staging/prod + the CI-generated version tag) — baked
 # into the bundle by vite.config.ts's `define` block and surfaced via
 # src/lib/version.ts (app icon, manifest name, sidebar footer, boot log).

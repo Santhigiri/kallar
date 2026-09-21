@@ -57,12 +57,15 @@ jobs:
           if [ "${{ github.ref }}" = "refs/heads/develop" ]; then
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_DEV }}" >> $GITHUB_OUTPUT
             echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_DEV }}" >> $GITHUB_OUTPUT
+            echo "VITE_KUMILY_BASE_URL=${{ secrets.VITE_KUMILY_BASE_URL_DEV }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/release" ]; then
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_STAGING }}" >> $GITHUB_OUTPUT
             echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_STAGING }}" >> $GITHUB_OUTPUT
+            echo "VITE_KUMILY_BASE_URL=${{ secrets.VITE_KUMILY_BASE_URL_STAGING }}" >> $GITHUB_OUTPUT
           else
             echo "VITE_APP_BASE_URL=${{ secrets.VITE_APP_BASE_URL_PROD }}" >> $GITHUB_OUTPUT
             echo "VITE_TVM_BASE_URL=${{ secrets.VITE_TVM_BASE_URL_PROD }}" >> $GITHUB_OUTPUT
+            echo "VITE_KUMILY_BASE_URL=${{ secrets.VITE_KUMILY_BASE_URL_PROD }}" >> $GITHUB_OUTPUT
           fi
 
       # --- GCP auth ---
@@ -84,6 +87,7 @@ jobs:
           docker build \
             --build-arg VITE_APP_BASE_URL="${{ steps.apiurl.outputs.VITE_APP_BASE_URL }}" \
             --build-arg VITE_TVM_BASE_URL="${{ steps.apiurl.outputs.VITE_TVM_BASE_URL }}" \
+            --build-arg VITE_KUMILY_BASE_URL="${{ steps.apiurl.outputs.VITE_KUMILY_BASE_URL }}" \
             --build-arg VITE_APP_ENV="${{ steps.version.outputs.ENV }}" \
             --build-arg VITE_APP_VERSION="${{ steps.version.outputs.TAG }}" \
             -t "${AR_IMAGE}:${{ steps.version.outputs.TAG }}" -f Dockerfile .
