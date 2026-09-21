@@ -4,8 +4,11 @@ import { readGuruvaniOfTheDay, writeGuruvaniOfTheDay } from "./guruvaniCache"
 import type { Guruvani, GuruvaniFormValues } from "../schemas/guruvani"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
+import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 
 const KUMILY_BASE_URL = import.meta.env.VITE_KUMILY_BASE_URL
+
+export const GURUVANI_CACHE_KEY = "guruvani"
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -34,13 +37,13 @@ async function handleErrors(response: Response) {
   }
 }
 
-export async function getGuruvanis(): Promise<Array<Guruvani>> {
-  const response = await fetch(`${KUMILY_BASE_URL}/api/v1/guruvani`, {
-    headers: { Accept: "application/json" },
+export function getGuruvanis(
+  onBackgroundUpdate?: (data: Array<Guruvani>) => void
+): Promise<Array<Guruvani>> {
+  return fetchWithEtag(`${KUMILY_BASE_URL}/api/v1/guruvani`, GURUVANI_CACHE_KEY, z.array(guruvani), {
+    handleErrors,
+    onBackgroundUpdate,
   })
-  await handleErrors(response)
-  const json = await response.json()
-  return z.array(guruvani).parseAsync(json)
 }
 
 export async function getRandomGuruvani(): Promise<Guruvani> {

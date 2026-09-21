@@ -1,11 +1,18 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getGuruvaniOfTheDay, getGuruvanis } from "@/features/guruvani/api/guruvani"
 import { dateToKey } from "@/lib/date"
 
+const GURUVANI_QUERY_KEY = ["guruvani"]
+
 export function useGuruvanis() {
+  const queryClient = useQueryClient()
   return useQuery({
-    queryKey: ["guruvani"],
-    queryFn: getGuruvanis,
+    queryKey: GURUVANI_QUERY_KEY,
+    queryFn: () => getGuruvanis((data) => queryClient.setQueryData(GURUVANI_QUERY_KEY, data)),
+    // The list is ETag-validated (see fetchWithEtag): resolves instantly
+    // from the cached value and revalidates in the background, so there's
+    // no benefit to holding onto "fresh" data between refetches.
+    staleTime: 0,
   })
 }
 
