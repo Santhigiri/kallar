@@ -3,6 +3,7 @@ import NakshatraTab from "./tabs/NakshatraTab"
 import PanchangamTab from "./tabs/PanchangamTab"
 import SanthigiriEventsTab from "./tabs/SanthigiriEventsTab"
 import ThithiTab from "./tabs/ThithiTab"
+import ErrorBoundary from "@/components/shared/ErrorBoundary"
 import TopAppBar from "@/components/shared/TopAppBar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
@@ -29,19 +30,29 @@ export default function PanchangamDataPage() {
         </TabsList>
 
         <TabsContent value="panchangam">
-          <PanchangamTab />
+          <ErrorBoundary label="the panchangam table">
+            <PanchangamTab />
+          </ErrorBoundary>
         </TabsContent>
         <TabsContent value="nakshatra">
-          <NakshatraTab />
+          <ErrorBoundary label="the nakshatra table">
+            <NakshatraTab />
+          </ErrorBoundary>
         </TabsContent>
         <TabsContent value="thithi">
-          <ThithiTab />
+          <ErrorBoundary label="the thithi table">
+            <ThithiTab />
+          </ErrorBoundary>
         </TabsContent>
         <TabsContent value="santhigiri-events">
-          <SanthigiriEventsTab />
+          <ErrorBoundary label="Santhigiri events">
+            <SanthigiriEventsTab />
+          </ErrorBoundary>
         </TabsContent>
         <TabsContent value="guruvanis">
-          <GuruvaniTab />
+          <ErrorBoundary label="Guruvanis">
+            <GuruvaniTab />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

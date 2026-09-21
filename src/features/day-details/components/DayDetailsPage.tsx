@@ -13,6 +13,7 @@ import ThithiNakshatraCard from "./ThithiNakshatraCard";
 import ThithiNakshatraCardSkeleton from "./ThithiNakshatraCardSkeleton";
 import type { DayButton } from "react-day-picker";
 import type { ComponentProps } from "react";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import TopAppBar from "@/components/shared/TopAppBar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -155,63 +156,75 @@ export default function DayDetailsPage() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
           <div className="md:col-span-2">
-            <GuruvaniCard />
+            <ErrorBoundary label="Guruvani">
+              <GuruvaniCard />
+            </ErrorBoundary>
           </div>
 
-          {activeDateData ? (
-            <ThithiNakshatraCard
-              thithi={activeDateData.thithi}
-              thithiTransitions={activeDateData.thithi_transitions}
-              nakshatra={activeDateData.nakshatra}
-              nakshatraTransitions={activeDateData.nakshatra_transitions}
-              kv={activeDateData.kv}
-              timeZone={timeZone}
-              timeZoneAbbreviation={timeZoneAbbreviation}
-            />
-          ) : (
-            <ThithiNakshatraCardSkeleton />
-          )}
+          <ErrorBoundary label="Thithi and Nakshatra">
+            {activeDateData ? (
+              <ThithiNakshatraCard
+                thithi={activeDateData.thithi}
+                thithiTransitions={activeDateData.thithi_transitions}
+                nakshatra={activeDateData.nakshatra}
+                nakshatraTransitions={activeDateData.nakshatra_transitions}
+                kv={activeDateData.kv}
+                timeZone={timeZone}
+                timeZoneAbbreviation={timeZoneAbbreviation}
+              />
+            ) : (
+              <ThithiNakshatraCardSkeleton />
+            )}
+          </ErrorBoundary>
 
-          {sunrise && sunset ? (
-            <SunriseSunsetCard
-              sunrise={sunrise}
-              sunset={sunset}
-              timeZone={timeZone}
-              timeZoneAbbreviation={timeZoneAbbreviation}
-              nazhika={activeDateData?.nazhika_from_sunrise}
-            />
-          ) : (
-            <SunriseSunsetCardSkeleton />
-          )}
+          <ErrorBoundary label="sunrise/sunset">
+            {sunrise && sunset ? (
+              <SunriseSunsetCard
+                sunrise={sunrise}
+                sunset={sunset}
+                timeZone={timeZone}
+                timeZoneAbbreviation={timeZoneAbbreviation}
+                nazhika={activeDateData?.nazhika_from_sunrise}
+              />
+            ) : (
+              <SunriseSunsetCardSkeleton />
+            )}
+          </ErrorBoundary>
 
-          {activeDateData ? (
-            <ThithiTransitionCard
-              transitions={activeDateData.thithi_transitions}
-              current_thithi={activeDateData.thithi}
-              timeZone={timeZone}
-              timeZoneAbbreviation={timeZoneAbbreviation}
-            />
-          ) : (
-            <CompactTransitionRowSkeleton />
-          )}
+          <ErrorBoundary label="Thithi transitions">
+            {activeDateData ? (
+              <ThithiTransitionCard
+                transitions={activeDateData.thithi_transitions}
+                current_thithi={activeDateData.thithi}
+                timeZone={timeZone}
+                timeZoneAbbreviation={timeZoneAbbreviation}
+              />
+            ) : (
+              <CompactTransitionRowSkeleton />
+            )}
+          </ErrorBoundary>
 
-          {activeDateData ? (
-            <NakshatraTransitionCard
-              transitions={activeDateData.nakshatra_transitions}
-              current_nakshatra={activeDateData.nakshatra}
-              timeZone={timeZone}
-              timeZoneAbbreviation={timeZoneAbbreviation}
-            />
-          ) : (
-            <CompactTransitionRowSkeleton />
-          )}
+          <ErrorBoundary label="Nakshatra transitions">
+            {activeDateData ? (
+              <NakshatraTransitionCard
+                transitions={activeDateData.nakshatra_transitions}
+                current_nakshatra={activeDateData.nakshatra}
+                timeZone={timeZone}
+                timeZoneAbbreviation={timeZoneAbbreviation}
+              />
+            ) : (
+              <CompactTransitionRowSkeleton />
+            )}
+          </ErrorBoundary>
 
           <div className="md:col-span-2">
-            {isLoading ? (
-              <UpcomingEventsCardSkeleton />
-            ) : (
-              <UpcomingEventsCard events={upcomingEvents} />
-            )}
+            <ErrorBoundary label="upcoming events">
+              {isLoading ? (
+                <UpcomingEventsCardSkeleton />
+              ) : (
+                <UpcomingEventsCard events={upcomingEvents} />
+              )}
+            </ErrorBoundary>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import appCss from "../styles.css?url"
 import { queryClient } from "@/lib/query-client"
 import { RefreshPrompt } from "@/components/shared/RefreshPrompt"
+import RouteErrorFallback from "@/components/shared/RouteErrorFallback"
 import Sidebar from "@/components/shared/Sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
@@ -43,6 +44,7 @@ export const Route = createRootRoute({
       <p>The requested page could not be found.</p>
     </main>
   ),
+  errorComponent: RouteErrorFallback,
   component: RootComponent,
 })
 
