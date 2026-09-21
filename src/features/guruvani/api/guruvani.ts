@@ -5,7 +5,7 @@ import type { Guruvani, GuruvaniFormValues } from "../schemas/guruvani"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
-const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
+const KUMILY_BASE_URL = import.meta.env.VITE_KUMILY_BASE_URL
 
 export class NotFoundError extends Error {
   constructor(message: string) {
@@ -35,7 +35,7 @@ async function handleErrors(response: Response) {
 }
 
 export async function getGuruvanis(): Promise<Array<Guruvani>> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/guruvani`, {
+  const response = await fetch(`${KUMILY_BASE_URL}/api/v1/guruvani`, {
     headers: { Accept: "application/json" },
   })
   await handleErrors(response)
@@ -44,7 +44,7 @@ export async function getGuruvanis(): Promise<Array<Guruvani>> {
 }
 
 export async function getRandomGuruvani(): Promise<Guruvani> {
-  const response = await fetch(`${APP_BASE_URL}/api/v1/guruvani/random`, {
+  const response = await fetch(`${KUMILY_BASE_URL}/api/v1/guruvani/random`, {
     headers: { Accept: "application/json" },
   })
   await handleErrors(response)
@@ -70,7 +70,7 @@ export async function getGuruvaniOfTheDay(dayKey: string): Promise<Guruvani> {
 }
 
 export async function createGuruvani(values: GuruvaniFormValues): Promise<Guruvani> {
-  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani`, {
+  const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,7 +87,7 @@ export async function updateGuruvani(
   id: number,
   values: GuruvaniFormValues
 ): Promise<Guruvani> {
-  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
+  const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -101,7 +101,7 @@ export async function updateGuruvani(
 }
 
 export async function deleteGuruvani(id: number): Promise<void> {
-  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/guruvani/${id}`, {
+  const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani/${id}`, {
     method: "DELETE",
   })
   await handleErrors(response)
