@@ -1,6 +1,7 @@
-import { createContext, useContext, useRef } from "react"
-import { ChevronLeft, ChevronRight, InfoIcon, SunriseIcon, SunsetIcon } from "lucide-react";
+import { createContext, useContext, useRef, useState } from "react"
+import { ChevronLeft, ChevronRight, FileDown, InfoIcon, SunriseIcon, SunsetIcon } from "lucide-react";
 import CalendarGridSkeleton from "./CalendarGridSkeleton";
+import ExportEventsDialog from "./ExportEventsDialog";
 import type { ComponentProps, TouchEvent } from "react"
 import type { PanchangamDayData } from "@/features/panchangam/schemas/panchangamData";
 import type { DayButton } from "react-day-picker";
@@ -237,6 +238,8 @@ export default function CalendarCustomDays() {
     endKey,
   } = useCalendarPanchangam();
 
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+
   const touchStartRef = useRef<{ x: number; y: number } | null>(null)
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
@@ -319,38 +322,56 @@ export default function CalendarCustomDays() {
               }}
             />
             {monthEvents.length > 0 && (
-              <div className="grid grid-flow-rows auto-rows-min mt-2 gap-1">
-                {monthEvents.map((event, idx) => (
-                  <div
-                    key={idx}
-                    className="flex flex-row items-center gap-4 border-b border-primary/20 px-2 py-1.5 last:border-b-0 text-primary font-semibold font-inter text-xs md:text-sm"
+              <div className="mt-2">
+                <div className="flex items-center justify-between px-2">
+                  <p className="font-inter text-xs font-semibold text-muted-foreground md:text-sm">
+                    Events this month
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Export events"
+                    onClick={() => setIsExportDialogOpen(true)}
+                    className="text-primary hover:text-primary"
                   >
-                    <p>{event.dt.getDate()}</p>
-                    <p>{event.e.name}</p>
-                    <HoverCard openDelay={150} closeDelay={50}>
-                      <HoverCardTrigger asChild>
-                        <button
-                          type="button"
-                          aria-label={`${event.e.name} details`}
-                          className="text-primary/70 hover:text-primary"
-                        >
-                          <InfoIcon className="h-4 w-4" />
-                        </button>
-                      </HoverCardTrigger>
-                      <HoverCardContent className="w-72">
-                        <p className="font-playfair-display font-bold text-primary">{event.e.name}</p>
-                        <p className="mt-1 font-inter text-xs font-normal text-muted-foreground md:text-sm">
-                          {event.e.description}
-                        </p>
-                      </HoverCardContent>
-                    </HoverCard>
-                  </div>
-                ))}
+                    <FileDown />
+                    Export
+                  </Button>
+                </div>
+                <div className="grid grid-flow-rows auto-rows-min gap-1">
+                  {monthEvents.map((event, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-row items-center gap-4 border-b border-primary/20 px-2 py-1.5 last:border-b-0 text-primary font-semibold font-inter text-xs md:text-sm"
+                    >
+                      <p>{event.dt.getDate()}</p>
+                      <p>{event.e.name}</p>
+                      <HoverCard openDelay={150} closeDelay={50}>
+                        <HoverCardTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label={`${event.e.name} details`}
+                            className="text-primary/70 hover:text-primary"
+                          >
+                            <InfoIcon className="h-4 w-4" />
+                          </button>
+                        </HoverCardTrigger>
+                        <HoverCardContent className="w-72">
+                          <p className="font-playfair-display font-bold text-primary">{event.e.name}</p>
+                          <p className="mt-1 font-inter text-xs font-normal text-muted-foreground md:text-sm">
+                            {event.e.description}
+                          </p>
+                        </HoverCardContent>
+                      </HoverCard>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
         </div>
       </CalendarDataContext.Provider>
+      <ExportEventsDialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen} />
     </div>
   )
 }

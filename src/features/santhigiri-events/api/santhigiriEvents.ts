@@ -157,6 +157,20 @@ export async function generateSanthigiriEventOccurrences(
   return result
 }
 
+export function getSanthigiriEventsCalendarIcsUrl() {
+  return `${APP_BASE_URL}/api/v1/panchangam/events/calendar.ics`
+}
+
+export async function downloadSanthigiriEventsCalendarIcs() {
+  const response = await fetch(getSanthigiriEventsCalendarIcsUrl(), {
+    method: "GET",
+    headers: { Accept: "text/calendar" },
+  })
+
+  await handleErrors(response)
+  return response.blob()
+}
+
 export async function getSanthigiriEvent(eventId: string) {
   const response = await fetch(
     `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
