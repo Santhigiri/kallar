@@ -9,11 +9,13 @@ import {
   User,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { LucideIcon } from "lucide-react"
 import { LoginDialog } from "@/features/auth/components/LoginDialog"
 import { SignupDialog } from "@/features/auth/components/SignupDialog"
 import { ForgotPasswordDialog } from "@/features/auth/components/ForgotPasswordDialog"
 import ThemeToggle from "@/components/shared/ThemeToggle"
+import LanguageToggle from "@/components/shared/LanguageToggle"
 import LocationPicker from "@/components/shared/LocationPicker"
 import { useAuth } from "@/features/auth/hooks/useAuth"
 import { isAtLeast } from "@/lib/auth/roles"
@@ -36,19 +38,24 @@ import {
 type NavItemProps = {
   to: string
   icon: LucideIcon
-  label: string
+  labelKey: string
 }
 
 const baseNavItems: Array<NavItemProps> = [
-  { to: "/calendar", icon: Calendar, label: "Calendar" },
-  { to: "/", icon: Home, label: "Today" },
-  { to: "/starfinder", icon: Telescope, label: "Explore" },
+  { to: "/calendar", icon: Calendar, labelKey: "nav.calendar" },
+  { to: "/", icon: Home, labelKey: "nav.today" },
+  { to: "/starfinder", icon: Telescope, labelKey: "nav.explore" },
 ]
 
-const dataNavItem: NavItemProps = { to: "/data", icon: Database, label: "Data" }
-const settingsNavItem: NavItemProps = { to: "/settings", icon: Settings, label: "Settings" }
+const dataNavItem: NavItemProps = { to: "/data", icon: Database, labelKey: "nav.data" }
+const settingsNavItem: NavItemProps = {
+  to: "/settings",
+  icon: Settings,
+  labelKey: "nav.settings",
+}
 
 export default function Sidebar() {
+  const { t } = useTranslation()
   const { state, isMobile, setOpen } = useSidebar()
   const sidebarRef = useRef<HTMLDivElement>(null)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
@@ -63,7 +70,7 @@ export default function Sidebar() {
     ...baseNavItems,
     ...(isAtLeast(role, "EDITOR") ? [dataNavItem] : []),
     ...(isAtLeast(role, "ADMIN") ? [settingsNavItem] : []),
-  ]
+  ].map((item) => ({ ...item, label: t(item.labelKey) }))
   // The mobile sidebar is a full-width sheet, not an icon rail — labels
   // always show there regardless of the desktop expand/collapse state.
   const showLabels = isMobile || state === "expanded"
@@ -112,13 +119,14 @@ export default function Sidebar() {
           <SidebarHeader className="flex-row items-start justify-between gap-2 border-b border-sidebar-border group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
             <div className="min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="truncate font-playfair-display text-lg leading-tight font-semibold">
-                Panchangam
+                {t("sidebar.appName")}
               </p>
               <p className="truncate text-xs text-muted-foreground">
-                Santhigiri Ashram
+                {t("sidebar.appSubtitle")}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1 group-data-[collapsible=icon]:flex-col">
+              {!isCollapsed && <LanguageToggle />}
               {!isCollapsed && <ThemeToggle />}
               <SidebarTrigger />
             </div>
@@ -157,7 +165,8 @@ export default function Sidebar() {
               </>
             )}
             {isCollapsed && (
-              <div className="flex justify-center">
+              <div className="flex flex-col items-center gap-1">
+                <LanguageToggle />
                 <ThemeToggle />
               </div>
             )}
@@ -166,11 +175,17 @@ export default function Sidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={handleLogout}
-                    tooltip={displayName ? `Log out (${displayName})` : "Log out"}
+                    tooltip={
+                      displayName
+                        ? t("sidebar.logOutWithName", { name: displayName })
+                        : t("sidebar.logOut")
+                    }
                   >
                     <LogOutIcon />
                     <span className="group-data-[collapsible=icon]:hidden">
-                      {displayName ? `Log out (${displayName})` : "Log out"}
+                      {displayName
+                        ? t("sidebar.logOutWithName", { name: displayName })
+                        : t("sidebar.logOut")}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -180,11 +195,11 @@ export default function Sidebar() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => setIsLoginOpen(true)}
-                    tooltip="Log in"
+                    tooltip={t("sidebar.logIn")}
                   >
                     <User />
                     <span className="group-data-[collapsible=icon]:hidden">
-                      Log in
+                      {t("sidebar.logIn")}
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

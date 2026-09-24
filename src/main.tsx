@@ -15,6 +15,7 @@ import {
 import { routeTree } from './routeTree.gen'
 import { logger } from './lib/logger'
 import { APP_ENV, APP_VERSION } from './lib/version'
+import './lib/i18n/config'
 
 logger.info('app', `booting ${APP_ENV} build ${APP_VERSION}`)
 

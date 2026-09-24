@@ -1,0 +1,21 @@
+{
+  "nav": {
+    "calendar": "Calendar",
+    "today": "Today",
+    "explore": "Explore",
+    "data": "Data",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "appName": "Panchangam",
+    "appSubtitle": "Santhigiri Ashram",
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "logOutWithName": "Log out ({{name}})"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ml": "Malayalam"
+  }
+}
