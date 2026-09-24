@@ -100,9 +100,20 @@ export default function Sidebar() {
     if (isMobile || state !== "expanded") return
 
     function handlePointerDown(event: PointerEvent) {
+      const target = event.target as Node
+      // Radix popper-based content (dropdown menus, selects, popovers) is
+      // rendered via a Portal into document.body, outside sidebarRef — so a
+      // click inside an open one (e.g. the language dropdown) would
+      // otherwise register as "outside" and collapse the sidebar mid-click,
+      // unmounting the trigger's own component before its click/select
+      // event fires.
+      const insidePortaledContent = target instanceof Element
+        && target.closest("[data-radix-popper-content-wrapper]") !== null
+
       if (
         sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
+        !sidebarRef.current.contains(target) &&
+        !insidePortaledContent
       ) {
         setOpen(false)
       }

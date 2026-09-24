@@ -26,7 +26,7 @@ export default function LanguageToggle() {
         {supportedLanguages.map((lng) => (
           <DropdownMenuItem
             key={lng}
-            onClick={() => i18n.changeLanguage(lng)}
+            onSelect={() => i18n.changeLanguage(lng)}
             className={i18n.resolvedLanguage === lng ? "font-semibold" : undefined}
           >
             {t(`language.${lng}`)}
