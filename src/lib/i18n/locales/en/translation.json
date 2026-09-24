@@ -39,7 +39,9 @@
     "sortOrder": "Sort order",
     "malayalam": "Malayalam",
     "english": "English",
-    "none": "None"
+    "none": "None",
+    "today": "today",
+    "tomorrow": "tomorrow"
   },
   "auth": {
     "login": {

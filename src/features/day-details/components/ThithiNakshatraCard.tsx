@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import type { KollavarshamDate, Nakshatra, NakshatraTransition, Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
-import { getFormattedTimeWithRelativeDay } from "@/lib/utils"
+import { getFormattedTimeWithRelativeDay, localizedName } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
 type ThithiNakshatraCardProps = {
@@ -32,7 +32,7 @@ export default function ThithiNakshatraCard({
   timeZone,
   timeZoneAbbreviation,
 }: ThithiNakshatraCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const thithiEnd = currentWindowEnd(
     thithiTransitions.map((transition) => ({ ...transition, name: transition.thithi.en })),
     thithi.en
@@ -53,8 +53,8 @@ export default function ThithiNakshatraCard({
             <p className="text-[11px] tracking-wide text-accent-700 uppercase">
               {t("dayDetails.thithiLabel")}
             </p>
-            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{thithi.en}</p>
-            <p className="mt-0.5 text-xs text-accent-700">{thithi.paksha.en}</p>
+            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{localizedName(thithi, i18n.language)}</p>
+            <p className="mt-0.5 text-xs text-accent-700">{localizedName(thithi.paksha, i18n.language)}</p>
             {thithiEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
                 {t("dayDetails.until", {
@@ -68,8 +68,8 @@ export default function ThithiNakshatraCard({
             <p className="text-[11px] tracking-wide text-accent-700 uppercase">
               {t("dayDetails.nakshatraLabel")}
             </p>
-            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{nakshatra.en}</p>
-            <p className="mt-0.5 text-xs text-accent-700">{kv.kv_month_name_en}</p>
+            <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{localizedName(nakshatra, i18n.language)}</p>
+            <p className="mt-0.5 text-xs text-accent-700">{i18n.language === "ml" ? kv.kv_month_name_ml : kv.kv_month_name_en}</p>
             {nakshatraEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
                 {t("dayDetails.until", {
