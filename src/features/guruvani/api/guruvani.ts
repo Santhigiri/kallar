@@ -72,6 +72,27 @@ export async function getGuruvaniOfTheDay(dayKey: string): Promise<Guruvani> {
   return data
 }
 
+async function upsertTranslation(
+  id: number,
+  languageCode: string,
+  text: string
+): Promise<Guruvani> {
+  const response = await authorizedFetch(
+    `${KUMILY_BASE_URL}/api/v1/guruvani/${id}/translations/${languageCode}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ text }),
+    }
+  )
+  await handleErrors(response)
+  const json = await response.json()
+  return guruvani.parseAsync(json)
+}
+
 export async function createGuruvani(values: GuruvaniFormValues): Promise<Guruvani> {
   const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani`, {
     method: "POST",
@@ -79,28 +100,38 @@ export async function createGuruvani(values: GuruvaniFormValues): Promise<Guruva
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(values),
+    body: JSON.stringify({ sort_order: values.sort_order }),
   })
   await handleErrors(response)
-  const json = await response.json()
-  return guruvani.parseAsync(json)
+  const created = guruvani.parseAsync(await response.json())
+  const { id } = await created
+
+  let result = await upsertTranslation(id, "en", values.text_en)
+  result = await upsertTranslation(id, "ml", values.text_ml)
+  return result
 }
 
 export async function updateGuruvani(
   id: number,
   values: GuruvaniFormValues
 ): Promise<Guruvani> {
-  const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(values),
-  })
-  await handleErrors(response)
-  const json = await response.json()
-  return guruvani.parseAsync(json)
+  await upsertTranslation(id, "en", values.text_en)
+  let result = await upsertTranslation(id, "ml", values.text_ml)
+
+  if (values.sort_order !== null) {
+    const response = await authorizedFetch(`${KUMILY_BASE_URL}/api/v1/guruvani/${id}/sort-order`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ sort_order: values.sort_order }),
+    })
+    await handleErrors(response)
+    result = await guruvani.parseAsync(await response.json())
+  }
+
+  return result
 }
 
 export async function deleteGuruvani(id: number): Promise<void> {
