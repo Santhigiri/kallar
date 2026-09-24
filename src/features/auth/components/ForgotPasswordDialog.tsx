@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import type { FormEvent } from "react"
 import type { Identifier } from "@/features/auth/schemas/auth"
 import {
@@ -23,6 +24,7 @@ type ForgotPasswordDialogProps = {
 type Step = "identifier" | "code" | "newPassword"
 
 export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialogProps) {
+  const { t } = useTranslation()
   const [step, setStep] = useState<Step>("identifier")
   const [identifier, setIdentifier] = useState<Identifier>({ email: "" })
   const [code, setCode] = useState("")
@@ -61,7 +63,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
       setResetToken(await verifyResetCode(identifier, code))
       setStep("newPassword")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
     } finally {
       setIsSubmitting(false)
     }
@@ -73,10 +75,10 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
     setIsSubmitting(true)
     try {
       await resetPassword(resetToken, newPassword)
-      toast.success("Password reset — log in with your new password")
+      toast.success(t("auth.forgotPassword.successToast"))
       resetAndClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
       setIsSubmitting(false)
     }
   }
@@ -93,11 +95,11 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reset password</DialogTitle>
+          <DialogTitle>{t("auth.forgotPassword.title")}</DialogTitle>
           <DialogDescription>
-            {step === "identifier" && "Enter your email to receive a reset code."}
-            {step === "code" && "Enter the reset code we sent you."}
-            {step === "newPassword" && "Choose a new password."}
+            {step === "identifier" && t("auth.forgotPassword.descriptionIdentifier")}
+            {step === "code" && t("auth.forgotPassword.descriptionCode")}
+            {step === "newPassword" && t("auth.forgotPassword.descriptionNewPassword")}
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +112,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                 idPrefix="forgot-password"
               />
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Sending..." : "Send reset code"}
+                {isSubmitting ? t("auth.forgotPassword.sending") : t("auth.forgotPassword.sendResetCode")}
               </Button>
             </FieldGroup>
           </form>
@@ -120,7 +122,9 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
           <form onSubmit={handleVerifyCode}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="forgot-password-code">Reset code</FieldLabel>
+                <FieldLabel htmlFor="forgot-password-code">
+                  {t("auth.forgotPassword.resetCode")}
+                </FieldLabel>
                 <Input
                   id="forgot-password-code"
                   autoComplete="one-time-code"
@@ -136,7 +140,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                 {error && <FieldError>{error}</FieldError>}
               </Field>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Verifying..." : "Verify"}
+                {isSubmitting ? t("auth.forgotPassword.verifying") : t("auth.forgotPassword.verify")}
               </Button>
             </FieldGroup>
           </form>
@@ -146,7 +150,9 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
           <form onSubmit={handleResetPassword}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="forgot-password-new-password">New password</FieldLabel>
+                <FieldLabel htmlFor="forgot-password-new-password">
+                  {t("auth.forgotPassword.newPassword")}
+                </FieldLabel>
                 <Input
                   id="forgot-password-new-password"
                   type="password"
@@ -159,7 +165,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                 {error && <FieldError>{error}</FieldError>}
               </Field>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Resetting..." : "Reset password"}
+                {isSubmitting ? t("auth.forgotPassword.resetting") : t("auth.forgotPassword.resetPassword")}
               </Button>
             </FieldGroup>
           </form>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { Nakshatra, NakshatraTransition } from "@/features/panchangam/schemas/panchangamData"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,18 +13,19 @@ export default function StarfinderNakshatraTransitionsCard({
   transitions,
   currentNakshatra,
 }: StarfinderNakshatraTransitionsCardProps) {
+  const { t } = useTranslation()
   return (
     <Card className="rounded-xl py-4 gap-2 mb-2">
       <CardHeader>
-        <p className="font-semibold text-sm">Nakshatra Transitions</p>
+        <p className="font-semibold text-sm">{t("starfinder.nakshatraTransitions")}</p>
       </CardHeader>
       <CardContent className="px-4">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nakshatra</TableHead>
-              <TableHead>Start</TableHead>
-              <TableHead>End</TableHead>
+              <TableHead>{t("dayDetails.nakshatraLabel")}</TableHead>
+              <TableHead>{t("starfinder.start")}</TableHead>
+              <TableHead>{t("starfinder.end")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

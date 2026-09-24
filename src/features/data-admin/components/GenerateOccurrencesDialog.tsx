@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { format, parseISO } from "date-fns"
 import { Copy } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import type {
   SanthigiriEvent,
   SanthigiriEventGenerateProgress,
@@ -43,6 +44,7 @@ export function GenerateOccurrencesDialog({
   event,
   onOpenChange,
 }: GenerateOccurrencesDialogProps) {
+  const { t } = useTranslation()
   const [startYear, setStartYear] = useState(() => new Date().getFullYear())
   const [endYear, setEndYear] = useState(() => new Date().getFullYear())
   const [progress, setProgress] = useState<SanthigiriEventGenerateProgress | null>(null)
@@ -70,23 +72,24 @@ export function GenerateOccurrencesDialog({
       .map((date) => format(parseISO(date), "d MMMM yyyy"))
       .join("\n")
     navigator.clipboard.writeText(text)
-    toast.success("Occurrence dates copied to clipboard")
+    toast.success(t("dataAdmin.generateOccurrences.copySuccess"))
   }
 
   return (
     <Dialog open={event !== null} onOpenChange={(next) => !next && onOpenChange(false)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Generate occurrences</DialogTitle>
+          <DialogTitle>{t("dataAdmin.generateOccurrences.title")}</DialogTitle>
           <DialogDescription>
-            Recompute {event?.name}&rsquo;s occurrence dates for a range of years from the
-            stored panchangam data. This replaces any dates already generated for those years.
+            {t("dataAdmin.generateOccurrences.description", { name: event?.name })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex gap-4">
           <Field className="flex-1">
-            <FieldLabel htmlFor="occurrences-start-year">Start year</FieldLabel>
+            <FieldLabel htmlFor="occurrences-start-year">
+              {t("dataAdmin.generateOccurrences.startYear")}
+            </FieldLabel>
             <Select
               value={String(startYear)}
               onValueChange={(value) => setStartYear(Number(value))}
@@ -105,7 +108,9 @@ export function GenerateOccurrencesDialog({
           </Field>
 
           <Field className="flex-1">
-            <FieldLabel htmlFor="occurrences-end-year">End year</FieldLabel>
+            <FieldLabel htmlFor="occurrences-end-year">
+              {t("dataAdmin.generateOccurrences.endYear")}
+            </FieldLabel>
             <Select value={String(endYear)} onValueChange={(value) => setEndYear(Number(value))}>
               <SelectTrigger id="occurrences-end-year" className="w-full">
                 <SelectValue />
@@ -122,17 +127,23 @@ export function GenerateOccurrencesDialog({
         </div>
 
         {rangeInvalid && (
-          <FieldError>End year must be on or after start year.</FieldError>
+          <FieldError>{t("dataAdmin.generateOccurrences.rangeInvalid")}</FieldError>
         )}
         {rangeTooLarge && (
-          <FieldError>Year range too large (max {MAX_YEAR_SPAN} years).</FieldError>
+          <FieldError>
+            {t("dataAdmin.generateOccurrences.rangeTooLarge", { max: MAX_YEAR_SPAN })}
+          </FieldError>
         )}
 
         {generateMutation.isPending && progress && (
           <div className="flex flex-col gap-1">
             <Progress value={progress.percent} />
             <span className="text-sm text-muted-foreground">
-              {progress.completed}/{progress.total} years ({progress.year})
+              {t("dataAdmin.generateOccurrences.progress", {
+                completed: progress.completed,
+                total: progress.total,
+                year: progress.year,
+              })}
             </span>
           </div>
         )}
@@ -142,7 +153,10 @@ export function GenerateOccurrencesDialog({
             {Object.entries(generateMutation.data.occurrences).map(([year, dates]) => (
               <div key={year} className="mb-2">
                 <p className="mb-1 font-medium">
-                  {year}: {dates.length === 0 ? "no occurrences" : `${dates.length} occurrence(s)`}
+                  {year}:{" "}
+                  {dates.length === 0
+                    ? t("dataAdmin.generateOccurrences.noOccurrences")
+                    : t("dataAdmin.generateOccurrences.occurrenceCount", { count: dates.length })}
                 </p>
                 {dates.length > 0 && (
                   <ul className="list-inside list-disc text-muted-foreground">
@@ -160,7 +174,7 @@ export function GenerateOccurrencesDialog({
           <FieldError>
             {generateMutation.error instanceof Error
               ? generateMutation.error.message
-              : "Failed to generate occurrences."}
+              : t("dataAdmin.generateOccurrences.generateFailed")}
           </FieldError>
         )}
 
@@ -169,9 +183,9 @@ export function GenerateOccurrencesDialog({
             <>
               <Button variant="outline" onClick={handleCopyDates}>
                 <Copy />
-                Copy dates
+                {t("dataAdmin.generateOccurrences.copyDates")}
               </Button>
-              <Button onClick={() => onOpenChange(false)}>Close</Button>
+              <Button onClick={() => onOpenChange(false)}>{t("common.close")}</Button>
             </>
           ) : (
             <Button
@@ -183,7 +197,7 @@ export function GenerateOccurrencesDialog({
                 }
               }}
             >
-              {generateMutation.isPending ? "Generating..." : "Generate"}
+              {generateMutation.isPending ? t("common.generating") : t("common.generate")}
             </Button>
           )}
         </DialogFooter>

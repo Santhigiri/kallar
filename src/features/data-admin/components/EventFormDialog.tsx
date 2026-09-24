@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { FormEvent } from "react"
 import type { SanthigiriEventDetail, SanthigiriEventFormValues } from "@/features/santhigiri-events/schemas/santhigiriEvent"
 import { Button } from "@/components/ui/button"
@@ -46,16 +47,17 @@ function NullableReferenceSelect({
   options: Array<{ id: number | string; label: string }>
   showNoneOption?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <Select
       value={value === "" ? NONE : value}
       onValueChange={(next) => onChange(next === NONE ? "" : next)}
     >
       <SelectTrigger id={id} className="w-full" disabled={isLoading}>
-        <SelectValue placeholder={isLoading ? "Loading..." : "None"} />
+        <SelectValue placeholder={isLoading ? t("common.loading") : t("common.none")} />
       </SelectTrigger>
       <SelectContent>
-        {showNoneOption && <SelectItem value={NONE}>None</SelectItem>}
+        {showNoneOption && <SelectItem value={NONE}>{t("common.none")}</SelectItem>}
         {options.map((option) => (
           <SelectItem key={option.id} value={String(option.id)}>
             {option.label}
@@ -99,9 +101,9 @@ function cycleTriState(current: boolean | null): boolean | null {
   return null
 }
 
-function triStateLabel(value: boolean | null): string {
-  if (value === null) return "Not a criterion"
-  return value ? "Must match" : "Must not match"
+function triStateLabel(value: boolean | null, t: (key: string) => string): string {
+  if (value === null) return t("dataAdmin.eventForm.triState.notCriterion")
+  return value ? t("dataAdmin.eventForm.triState.mustMatch") : t("dataAdmin.eventForm.triState.mustNotMatch")
 }
 
 const EMPTY_FORM: FormState = {
@@ -200,6 +202,7 @@ export function EventFormDialog({
   event,
   onSubmit,
 }: EventFormDialogProps) {
+  const { t } = useTranslation()
   const isEdit = event !== undefined
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [error, setError] = useState<string | null>(null)
@@ -235,7 +238,7 @@ export function EventFormDialog({
     e.preventDefault()
     setError(null)
     if (form.id.trim() === "") {
-      setError("Name must contain at least one letter or number to generate an event ID.")
+      setError(t("dataAdmin.eventForm.nameRequired"))
       return
     }
     setIsSubmitting(true)
@@ -243,7 +246,7 @@ export function EventFormDialog({
       await onSubmit(toFormValues(form))
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
       setIsSubmitting(false)
     }
   }
@@ -252,17 +255,17 @@ export function EventFormDialog({
     <Dialog open={open} onOpenChange={(next) => !isSubmitting && onOpenChange(next)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit event" : "New event"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("dataAdmin.eventForm.editTitle") : t("dataAdmin.eventForm.newTitle")}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? `Update the definition for ${event.id}.`
-              : "Define a new Santhigiri event and its matching condition."}
+              ? t("dataAdmin.eventForm.editDescription", { id: event.id })
+              : t("dataAdmin.eventForm.newDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="event-name">Name</FieldLabel>
+              <FieldLabel htmlFor="event-name">{t("common.name")}</FieldLabel>
               <Input
                 id="event-name"
                 value={form.name}
@@ -271,16 +274,16 @@ export function EventFormDialog({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="event-id">Event ID</FieldLabel>
+              <FieldLabel htmlFor="event-id">{t("dataAdmin.eventForm.eventId")}</FieldLabel>
               <Input
                 id="event-id"
                 value={form.id}
                 disabled
-                placeholder="Generated from the name"
+                placeholder={t("dataAdmin.eventForm.eventIdPlaceholder")}
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="event-description">Description</FieldLabel>
+              <FieldLabel htmlFor="event-description">{t("common.description")}</FieldLabel>
               <Textarea
                 id="event-description"
                 value={form.description}
@@ -290,7 +293,7 @@ export function EventFormDialog({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="event-sort-order">Sort order</FieldLabel>
+              <FieldLabel htmlFor="event-sort-order">{t("dataAdmin.eventForm.sortOrder")}</FieldLabel>
               <Input
                 id="event-sort-order"
                 type="number"
@@ -301,7 +304,7 @@ export function EventFormDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="event-nakshatra">Nakshatra</FieldLabel>
+                <FieldLabel htmlFor="event-nakshatra">{t("dayDetails.nakshatraLabel")}</FieldLabel>
                 <NullableReferenceSelect
                   id="event-nakshatra"
                   value={form.nakshatra_id}
@@ -314,15 +317,15 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-thithi">Thithi</FieldLabel>
+                <FieldLabel htmlFor="event-thithi">{t("dayDetails.thithiLabel")}</FieldLabel>
                 <NullableReferenceSelect
                   id="event-thithi"
                   value={form.thithi_id}
                   onChange={(value) => set("thithi_id", value)}
                   isLoading={thithiReference.isLoading}
-                  options={(thithiReference.data ?? []).map((t) => ({
-                    id: t.id,
-                    label: `${t.en} — ${t.paksha.en}`,
+                  options={(thithiReference.data ?? []).map((th) => ({
+                    id: th.id,
+                    label: `${th.en} — ${th.paksha.en}`,
                   }))}
                 />
               </Field>
@@ -330,7 +333,7 @@ export function EventFormDialog({
 
             <div className="grid grid-cols-3 gap-4">
               <Field>
-                <FieldLabel htmlFor="event-ml-day">Malayalam day</FieldLabel>
+                <FieldLabel htmlFor="event-ml-day">{t("dataAdmin.eventForm.malayalamDay")}</FieldLabel>
                 <Input
                   id="event-ml-day"
                   type="number"
@@ -339,7 +342,7 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-ml-month">Malayalam masa</FieldLabel>
+                <FieldLabel htmlFor="event-ml-month">{t("dataAdmin.eventForm.malayalamMasa")}</FieldLabel>
                 <NullableReferenceSelect
                   id="event-ml-month"
                   value={form.ml_month}
@@ -352,7 +355,7 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-ml-year">Malayalam year</FieldLabel>
+                <FieldLabel htmlFor="event-ml-year">{t("dataAdmin.eventForm.malayalamYear")}</FieldLabel>
                 <Input
                   id="event-ml-year"
                   type="number"
@@ -364,7 +367,7 @@ export function EventFormDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="event-chandra-masa-day">Lunar day</FieldLabel>
+                <FieldLabel htmlFor="event-chandra-masa-day">{t("dataAdmin.eventForm.lunarDay")}</FieldLabel>
                 <Input
                   id="event-chandra-masa-day"
                   type="number"
@@ -373,7 +376,7 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-chandra-masa-month">Lunar month</FieldLabel>
+                <FieldLabel htmlFor="event-chandra-masa-month">{t("dataAdmin.eventForm.lunarMonth")}</FieldLabel>
                 <NullableReferenceSelect
                   id="event-chandra-masa-month"
                   value={form.chandra_masa_month}
@@ -389,7 +392,7 @@ export function EventFormDialog({
 
             <div className="grid grid-cols-3 gap-4">
               <Field>
-                <FieldLabel htmlFor="event-en-day">English day</FieldLabel>
+                <FieldLabel htmlFor="event-en-day">{t("dataAdmin.eventForm.englishDay")}</FieldLabel>
                 <Input
                   id="event-en-day"
                   type="number"
@@ -398,7 +401,7 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-en-month">English month</FieldLabel>
+                <FieldLabel htmlFor="event-en-month">{t("dataAdmin.eventForm.englishMonth")}</FieldLabel>
                 <Input
                   id="event-en-month"
                   type="number"
@@ -407,7 +410,7 @@ export function EventFormDialog({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-en-year">English year</FieldLabel>
+                <FieldLabel htmlFor="event-en-year">{t("dataAdmin.eventForm.englishYear")}</FieldLabel>
                 <Input
                   id="event-en-year"
                   type="number"
@@ -418,7 +421,7 @@ export function EventFormDialog({
             </div>
 
             <Field>
-              <FieldLabel htmlFor="event-occurance">Occurrence</FieldLabel>
+              <FieldLabel htmlFor="event-occurance">{t("dataAdmin.eventForm.occurrence")}</FieldLabel>
               <Input
                 id="event-occurance"
                 type="number"
@@ -428,7 +431,7 @@ export function EventFormDialog({
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="event-yields-to">Yields to</FieldLabel>
+              <FieldLabel htmlFor="event-yields-to">{t("dataAdmin.eventForm.yieldsTo")}</FieldLabel>
               <NullableReferenceSelect
                 id="event-yields-to"
                 value={form.yields_to_event_id}
@@ -447,9 +450,9 @@ export function EventFormDialog({
                   checked={form.is_poornima === null ? "indeterminate" : form.is_poornima}
                   onCheckedChange={() => set("is_poornima", cycleTriState(form.is_poornima))}
                 />
-                Is Poornima
+                {t("dataAdmin.eventForm.isPoornima")}
                 <span className="text-muted-foreground text-xs">
-                  ({triStateLabel(form.is_poornima)})
+                  ({triStateLabel(form.is_poornima, t)})
                 </span>
               </FieldLabel>
             </Field>
@@ -460,9 +463,9 @@ export function EventFormDialog({
                   checked={form.last_occurance === null ? "indeterminate" : form.last_occurance}
                   onCheckedChange={() => set("last_occurance", cycleTriState(form.last_occurance))}
                 />
-                Last occurrence
+                {t("dataAdmin.eventForm.lastOccurrence")}
                 <span className="text-muted-foreground text-xs">
-                  ({triStateLabel(form.last_occurance)})
+                  ({triStateLabel(form.last_occurance, t)})
                 </span>
               </FieldLabel>
             </Field>
@@ -471,7 +474,11 @@ export function EventFormDialog({
 
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : isEdit ? "Save changes" : "Create event"}
+                {isSubmitting
+                  ? t("common.saving")
+                  : isEdit
+                    ? t("dataAdmin.eventForm.saveChanges")
+                    : t("dataAdmin.eventForm.createEvent")}
               </Button>
             </DialogFooter>
           </FieldGroup>

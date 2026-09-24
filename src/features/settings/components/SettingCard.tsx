@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,6 +37,7 @@ export function SettingCard({
   onReset,
   children,
 }: SettingCardProps) {
+  const { t } = useTranslation()
   return (
     <Card>
       <CardHeader>
@@ -49,10 +51,13 @@ export function SettingCard({
       <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t pt-6">
         <p className="text-xs text-muted-foreground">
           {updatedAt
-            ? `Last updated ${formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}${
-                updatedBy ? ` by ${updatedBy}` : ""
-              }`
-            : "Using default value — not yet customized."}
+            ? (() => {
+                const time = formatDistanceToNow(new Date(updatedAt), { addSuffix: true })
+                return updatedBy
+                  ? t("settings.card.lastUpdatedBy", { time, by: updatedBy })
+                  : t("settings.card.lastUpdated", { time })
+              })()
+            : t("settings.card.usingDefault")}
         </p>
         <div className="flex gap-2">
           {isDirty && (
@@ -63,11 +68,11 @@ export function SettingCard({
               onClick={onReset}
               disabled={isSaving}
             >
-              Reset
+              {t("settings.card.reset")}
             </Button>
           )}
           <Button type="button" size="sm" onClick={onSave} disabled={!isDirty || isSaving}>
-            {isSaving ? "Saving..." : "Save"}
+            {isSaving ? t("settings.card.saving") : t("settings.card.save")}
           </Button>
         </div>
       </CardFooter>

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { FormEvent } from "react"
 import type { Gender, Identifier } from "@/features/auth/schemas/auth"
 import {
@@ -32,6 +33,7 @@ type SignupDialogProps = {
 type Step = "identifier" | "code" | "profile"
 
 export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
+  const { t } = useTranslation()
   const { applySignupTokens } = useAuth()
   const [step, setStep] = useState<Step>("identifier")
   const [identifier, setIdentifier] = useState<Identifier>({ email: "" })
@@ -72,7 +74,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
       setSessionToken(await sendVerification(identifier))
       setStep("code")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
     } finally {
       setIsSubmitting(false)
     }
@@ -86,7 +88,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
       setSignupToken(await verifyCode(sessionToken, code))
       setStep("profile")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
     } finally {
       setIsSubmitting(false)
     }
@@ -108,7 +110,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
       await applySignupTokens(tokens)
       resetAndClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+      setError(err instanceof Error ? err.message : t("common.somethingWentWrong"))
       setIsSubmitting(false)
     }
   }
@@ -125,11 +127,11 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Sign up</DialogTitle>
+          <DialogTitle>{t("auth.signup.title")}</DialogTitle>
           <DialogDescription>
-            {step === "identifier" && "Enter your email to get started."}
-            {step === "code" && "Enter the verification code we sent you."}
-            {step === "profile" && "Tell us a bit about yourself."}
+            {step === "identifier" && t("auth.signup.descriptionIdentifier")}
+            {step === "code" && t("auth.signup.descriptionCode")}
+            {step === "profile" && t("auth.signup.descriptionProfile")}
           </DialogDescription>
         </DialogHeader>
 
@@ -139,7 +141,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
               <IdentifierFields identifier={identifier} onChange={setIdentifier} idPrefix="signup" />
               {error && <FieldError>{error}</FieldError>}
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Sending code..." : "Send verification code"}
+                {isSubmitting ? t("auth.signup.sendingCode") : t("auth.signup.sendCode")}
               </Button>
             </FieldGroup>
           </form>
@@ -149,7 +151,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
           <form onSubmit={handleVerifyCode}>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="signup-code">Verification code</FieldLabel>
+                <FieldLabel htmlFor="signup-code">{t("auth.signup.verificationCode")}</FieldLabel>
                 <Input
                   id="signup-code"
                   autoComplete="one-time-code"
@@ -165,7 +167,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                 {error && <FieldError>{error}</FieldError>}
               </Field>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Verifying..." : "Verify"}
+                {isSubmitting ? t("auth.signup.verifying") : t("auth.signup.verify")}
               </Button>
             </FieldGroup>
           </form>
@@ -176,7 +178,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
             <FieldGroup>
               <div className="flex gap-2">
                 <Field className="flex-1">
-                  <FieldLabel htmlFor="signup-first-name">First name</FieldLabel>
+                  <FieldLabel htmlFor="signup-first-name">{t("auth.signup.firstName")}</FieldLabel>
                   <Input
                     id="signup-first-name"
                     value={firstName}
@@ -186,7 +188,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                   />
                 </Field>
                 <Field className="flex-1">
-                  <FieldLabel htmlFor="signup-last-name">Last name</FieldLabel>
+                  <FieldLabel htmlFor="signup-last-name">{t("auth.signup.lastName")}</FieldLabel>
                   <Input
                     id="signup-last-name"
                     value={lastName}
@@ -196,7 +198,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                 </Field>
               </div>
               <Field>
-                <FieldLabel htmlFor="signup-gender">Gender</FieldLabel>
+                <FieldLabel htmlFor="signup-gender">{t("auth.signup.gender")}</FieldLabel>
                 <Select value={gender} onValueChange={(value) => setGender(value as Gender)}>
                   <SelectTrigger id="signup-gender">
                     <SelectValue />
@@ -204,14 +206,14 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                   <SelectContent>
                     {genderValues.map((value) => (
                       <SelectItem key={value} value={value}>
-                        {value.charAt(0) + value.slice(1).toLowerCase()}
+                        {t(`auth.signup.genderOptions.${value}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="signup-dob">Date of birth</FieldLabel>
+                <FieldLabel htmlFor="signup-dob">{t("auth.signup.dob")}</FieldLabel>
                 <Input
                   id="signup-dob"
                   type="date"
@@ -221,7 +223,7 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+                <FieldLabel htmlFor="signup-password">{t("auth.signup.password")}</FieldLabel>
                 <Input
                   id="signup-password"
                   type="password"
@@ -239,13 +241,13 @@ export function SignupDialog({ open, onOpenChange }: SignupDialogProps) {
                     onCheckedChange={(checked) => setIsWhatsApp(checked === true)}
                   />
                   <FieldLabel htmlFor="signup-is-whatsapp" className="font-normal">
-                    This number is on WhatsApp
+                    {t("auth.signup.isWhatsApp")}
                   </FieldLabel>
                 </div>
               )}
               {error && <FieldError>{error}</FieldError>}
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating account..." : "Create account"}
+                {isSubmitting ? t("auth.signup.creatingAccount") : t("auth.signup.createAccount")}
               </Button>
             </FieldGroup>
           </form>

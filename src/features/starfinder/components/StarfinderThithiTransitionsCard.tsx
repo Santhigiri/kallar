@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -12,19 +13,20 @@ export default function StarfinderThithiTransitionsCard({
   transitions,
   currentThithi,
 }: StarfinderThithiTransitionsCardProps) {
+  const { t } = useTranslation()
   return (
     <Card className="rounded-xl py-4 gap-2">
       <CardHeader>
-        <p className="font-semibold text-sm">Thithi Transitions</p>
+        <p className="font-semibold text-sm">{t("starfinder.thithiTransitions")}</p>
       </CardHeader>
       <CardContent className="px-4">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Thithi</TableHead>
-              <TableHead>Paksha</TableHead>
-              <TableHead>Start</TableHead>
-              <TableHead>End</TableHead>
+              <TableHead>{t("dayDetails.thithiLabel")}</TableHead>
+              <TableHead>{t("starfinder.paksha")}</TableHead>
+              <TableHead>{t("starfinder.start")}</TableHead>
+              <TableHead>{t("starfinder.end")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { Plus, X } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { SettingCard } from "./SettingCard"
 import type { AppSetting, NakshatraStepDaysValue } from "@/features/settings/schemas/appSettings"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ function formsEqual(a: FormState, b: FormState) {
 }
 
 export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
+  const { t } = useTranslation()
   const value = (setting?.value ?? DEFAULT_VALUE) as NakshatraStepDaysValue
   const initialForm = toFormState(value)
   const [form, setForm] = useState<FormState>(initialForm)
@@ -66,7 +68,7 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
     setError(null)
     const defaultStep = Number.parseFloat(form.defaultStep)
     if (Number.isNaN(defaultStep)) {
-      setError("Default step must be a number.")
+      setError(t("settings.nakshatraStepDays.defaultStepMustBeNumber"))
       return
     }
     const overrides: Record<string, number> = {}
@@ -74,12 +76,12 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
       const year = row.year.trim()
       if (year === "") continue
       if (!/^\d{4}$/.test(year)) {
-        setError(`"${row.year}" is not a valid 4-digit year.`)
+        setError(t("settings.nakshatraStepDays.invalidYear", { year: row.year }))
         return
       }
       const step = Number.parseFloat(row.step)
       if (Number.isNaN(step)) {
-        setError(`The override step for ${year} must be a number.`)
+        setError(t("settings.nakshatraStepDays.overrideStepMustBeNumber", { year }))
         return
       }
       overrides[year] = step
@@ -90,14 +92,14 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
         value: { default: defaultStep, overrides },
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save setting.")
+      setError(err instanceof Error ? err.message : t("settings.saveFailed"))
     }
   }
 
   return (
     <SettingCard
-      title="Nakshatra transition step size"
-      description="Skyfield search step (days) used to find Nakshatra transitions, with optional per-year overrides (e.g. a year that needs a coarser step). Fragile, correctness-critical — change with caution."
+      title={t("settings.nakshatraStepDays.title")}
+      description={t("settings.nakshatraStepDays.description")}
       isDirty={isDirty}
       isSaving={updateMutation.isPending}
       error={error}
@@ -107,7 +109,7 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
       onReset={handleReset}
     >
       <Field>
-        <FieldLabel htmlFor="nakshatra-step-default">Default step (days)</FieldLabel>
+        <FieldLabel htmlFor="nakshatra-step-default">{t("settings.nakshatraStepDays.defaultStep")}</FieldLabel>
         <Input
           id="nakshatra-step-default"
           type="number"
@@ -121,14 +123,14 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
       </Field>
 
       <Field>
-        <FieldLabel>Per-year overrides</FieldLabel>
+        <FieldLabel>{t("settings.nakshatraStepDays.perYearOverrides")}</FieldLabel>
         <div className="flex flex-col gap-2">
           {form.rows.map((row, index) => (
             <div key={index} className="flex items-center gap-2">
               <Input
                 type="text"
                 inputMode="numeric"
-                placeholder="Year, e.g. 2028"
+                placeholder={t("settings.nakshatraStepDays.yearPlaceholder")}
                 value={row.year}
                 onChange={(e) => updateRow(index, { year: e.target.value })}
                 className="w-32"
@@ -138,7 +140,7 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
                 step="any"
                 min={0}
                 max={1}
-                placeholder="Step (days)"
+                placeholder={t("settings.nakshatraStepDays.stepPlaceholder")}
                 value={row.step}
                 onChange={(e) => updateRow(index, { step: e.target.value })}
                 className="w-32"
@@ -147,7 +149,7 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Remove override"
+                aria-label={t("settings.nakshatraStepDays.removeOverride")}
                 onClick={() => removeRow(index)}
               >
                 <X />
@@ -156,7 +158,7 @@ export function NakshatraStepDaysCard({ setting }: { setting?: AppSetting }) {
           ))}
           <Button type="button" variant="outline" size="sm" onClick={addRow} className="self-start">
             <Plus />
-            Add override
+            {t("settings.nakshatraStepDays.addOverride")}
           </Button>
         </div>
       </Field>

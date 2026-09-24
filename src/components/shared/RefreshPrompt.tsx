@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { registerSW } from "virtual:pwa-register"
+import { useTranslation } from "react-i18next"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { logger } from "@/lib/logger"
 
 export const RefreshPrompt = () => {
+  const { t } = useTranslation()
   const [needRefresh, setNeedRefresh] = useState(false)
   const [updateServiceWorker, setUpdateServiceWorker] = useState<
     (reloadPage?: boolean) => Promise<void>
@@ -69,9 +71,9 @@ export const RefreshPrompt = () => {
   return (
     <Card className="fixed top-16 right-4 md:top-auto md:bottom-10 shadow-lg z-40 py-3 gap-2">
       <CardContent className="px-3 flex flex-col items-start gap-2">
-        <p className="text-sm whitespace-nowrap">Update available</p>
+        <p className="text-sm whitespace-nowrap">{t("shared.updateAvailable")}</p>
         <Button size="xs" onClick={reloadPage}>
-          Refresh
+          {t("shared.refresh")}
         </Button>
       </CardContent>
     </Card>

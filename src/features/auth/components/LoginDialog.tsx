@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { FormEvent } from "react"
 import type { Identifier } from "@/features/auth/schemas/auth"
 import {
@@ -23,6 +24,7 @@ type LoginDialogProps = {
 }
 
 export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: LoginDialogProps) {
+  const { t } = useTranslation()
   const { login } = useAuth()
   const [identifier, setIdentifier] = useState<Identifier>({ email: "" })
   const [password, setPassword] = useState("")
@@ -46,9 +48,7 @@ export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: 
       resetAndClose()
     } catch (err) {
       setError(
-        err instanceof InvalidCredentialsError
-          ? err.message
-          : "Something went wrong. Please try again."
+        err instanceof InvalidCredentialsError ? err.message : t("common.somethingWentWrong")
       )
       setIsSubmitting(false)
     }
@@ -66,14 +66,14 @@ export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: 
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Log in</DialogTitle>
-          <DialogDescription>Enter your email and password to continue.</DialogDescription>
+          <DialogTitle>{t("auth.login.title")}</DialogTitle>
+          <DialogDescription>{t("auth.login.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <IdentifierFields identifier={identifier} onChange={setIdentifier} idPrefix="login" />
             <Field>
-              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <FieldLabel htmlFor="login-password">{t("auth.login.password")}</FieldLabel>
               <Input
                 id="login-password"
                 type="password"
@@ -85,14 +85,14 @@ export function LoginDialog({ open, onOpenChange, onForgotPassword, onSignUp }: 
               {error && <FieldError>{error}</FieldError>}
             </Field>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Logging in..." : "Log in"}
+              {isSubmitting ? t("auth.login.submitting") : t("auth.login.submit")}
             </Button>
             <div className="flex justify-between">
               <Button type="button" variant="link" className="px-0" onClick={onForgotPassword}>
-                Forgot password?
+                {t("auth.login.forgotPassword")}
               </Button>
               <Button type="button" variant="link" className="px-0" onClick={onSignUp}>
-                Sign up
+                {t("auth.login.signUp")}
               </Button>
             </div>
           </FieldGroup>

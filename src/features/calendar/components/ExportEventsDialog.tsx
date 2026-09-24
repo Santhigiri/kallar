@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Copy, Download } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ export default function ExportEventsDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const { t } = useTranslation()
   const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownload = async () => {
@@ -37,7 +39,7 @@ export default function ExportEventsDialog({
       link.remove()
       URL.revokeObjectURL(url)
     } catch {
-      toast.error("Failed to download calendar file")
+      toast.error(t("calendar.exportDialog.downloadError"))
     } finally {
       setIsDownloading(false)
     }
@@ -46,9 +48,9 @@ export default function ExportEventsDialog({
   const handleCopyUrl = async () => {
     try {
       await navigator.clipboard.writeText(getSanthigiriEventsCalendarIcsUrl())
-      toast.success("Calendar URL copied to clipboard")
+      toast.success(t("calendar.exportDialog.copySuccess"))
     } catch {
-      toast.error("Failed to copy calendar URL")
+      toast.error(t("calendar.exportDialog.copyError"))
     }
   }
 
@@ -56,11 +58,8 @@ export default function ExportEventsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Export Santhigiri events</DialogTitle>
-          <DialogDescription>
-            Download a one-time calendar file, or subscribe to the live feed URL
-            so new events keep syncing automatically.
-          </DialogDescription>
+          <DialogTitle>{t("calendar.exportDialog.title")}</DialogTitle>
+          <DialogDescription>{t("calendar.exportDialog.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-3">
@@ -70,7 +69,7 @@ export default function ExportEventsDialog({
             className="w-full justify-start"
           >
             <Download />
-            {isDownloading ? "Downloading..." : "Download .ics file"}
+            {isDownloading ? t("calendar.exportDialog.downloading") : t("calendar.exportDialog.downloadIcs")}
           </Button>
           <Button
             variant="outline"
@@ -78,31 +77,34 @@ export default function ExportEventsDialog({
             className="w-full justify-start"
           >
             <Copy />
-            Copy calendar URL
+            {t("calendar.exportDialog.copyUrl")}
           </Button>
 
           <div className="rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
             <p className="mb-1 font-semibold text-foreground">
-              Add to Google Calendar
+              {t("calendar.exportDialog.addToGoogle")}
             </p>
             <ol className="list-decimal space-y-0.5 pl-4">
-              <li>Copy the calendar URL above.</li>
+              <li>{t("calendar.exportDialog.step1")}</li>
               <li>
-                In Google Calendar, go to{" "}
+                {t("calendar.exportDialog.step2Prefix")}{" "}
                 <span className="font-medium text-foreground">
-                  Other calendars
+                  {t("calendar.exportDialog.otherCalendars")}
                 </span>{" "}
                 → <span className="font-medium text-foreground">+</span> →{" "}
-                <span className="font-medium text-foreground">From URL</span>.
+                <span className="font-medium text-foreground">
+                  {t("calendar.exportDialog.fromUrl")}
+                </span>
+                .
               </li>
-              <li>Paste the URL and click Add calendar.</li>
+              <li>{t("calendar.exportDialog.step3")}</li>
             </ol>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
+            {t("common.close")}
           </Button>
         </DialogFooter>
       </DialogContent>

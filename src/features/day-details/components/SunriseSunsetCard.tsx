@@ -6,6 +6,7 @@ import {
   startOfDay,
 } from "date-fns"
 import { SunriseIcon, SunsetIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { ISODatetime } from "@/features/panchangam/schemas/panchangamData"
 import type { ReactNode } from "react"
 import { getFormattedTime } from "@/lib/utils"
@@ -20,6 +21,7 @@ type SunriseSunsetProps = {
 }
 
 export default function SunriseSunsetCard({ sunrise, sunset, timeZone, timeZoneAbbreviation, nazhika }: SunriseSunsetProps): ReactNode {
+  const { t } = useTranslation()
   const sunriseDate = parseISO(sunrise)
   const sunsetDate = parseISO(sunset)
   const now = new Date()
@@ -51,12 +53,16 @@ export default function SunriseSunsetCard({ sunrise, sunset, timeZone, timeZoneA
         <div className="flex w-full items-end justify-between gap-2">
           <div className="flex flex-col items-start gap-0.5">
             <SunriseIcon className="h-5 w-5 text-primary" />
-            <p className="font-inter text-muted-foreground text-[12px] font-semibold">SUNRISE</p>
+            <p className="font-inter text-muted-foreground text-[12px] font-semibold uppercase">
+              {t("dayDetails.sunrise")}
+            </p>
             <p className="font-inter text-sm font-medium">{getFormattedTime(sunrise, timeZone, true, timeZoneAbbreviation)}</p>
           </div>
           <div className="flex flex-col items-end gap-0.5">
             <SunsetIcon className="h-5 w-5 text-primary" />
-            <p className="font-inter text-muted-foreground text-[12px] font-semibold">SUNSET</p>
+            <p className="font-inter text-muted-foreground text-[12px] font-semibold uppercase">
+              {t("dayDetails.sunset")}
+            </p>
             <p className="font-inter text-sm font-medium">{getFormattedTime(sunset, timeZone, true, timeZoneAbbreviation)}</p>
           </div>
         </div>
@@ -76,12 +82,14 @@ export default function SunriseSunsetCard({ sunrise, sunset, timeZone, timeZoneA
         </div>
 
         <p className="font-inter text-xs text-muted-foreground">
-          daylight · {daylightHours}h {daylightRemainderMinutes}m
+          {t("dayDetails.daylight", { hours: daylightHours, minutes: daylightRemainderMinutes })}
         </p>
 
         {nazhika !== undefined && (
           <div className="flex w-full items-baseline justify-between gap-3 border-t border-border pt-3">
-            <span className="font-inter text-xs text-muted-foreground">Nazhika from sunrise</span>
+            <span className="font-inter text-xs text-muted-foreground">
+              {t("dayDetails.nazhikaFromSunrise")}
+            </span>
             <span className="font-inter text-base font-semibold">{nazhika.toFixed(1)}</span>
           </div>
         )}

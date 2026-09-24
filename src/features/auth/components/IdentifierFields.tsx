@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { Identifier } from "@/features/auth/schemas/auth"
 import { Field, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -16,12 +17,13 @@ const PHONE_AUTH_ENABLED = false as boolean
 // TVM identifies a user by either email or phone — every auth-flow dialog
 // (login, signup, forgot-password) needs the same email/phone picker.
 export function IdentifierFields({ identifier, onChange, idPrefix }: IdentifierFieldsProps) {
+  const { t } = useTranslation()
   const method = "email" in identifier ? "email" : "phone"
 
   if (!PHONE_AUTH_ENABLED) {
     return (
       <Field>
-        <FieldLabel htmlFor={`${idPrefix}-email`}>Email</FieldLabel>
+        <FieldLabel htmlFor={`${idPrefix}-email`}>{t("auth.identifierFields.email")}</FieldLabel>
         <Input
           id={`${idPrefix}-email`}
           type="email"
@@ -42,12 +44,12 @@ export function IdentifierFields({ identifier, onChange, idPrefix }: IdentifierF
       }
     >
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="email">Email</TabsTrigger>
-        <TabsTrigger value="phone">Phone</TabsTrigger>
+        <TabsTrigger value="email">{t("auth.identifierFields.email")}</TabsTrigger>
+        <TabsTrigger value="phone">{t("auth.identifierFields.phone")}</TabsTrigger>
       </TabsList>
       <TabsContent value="email">
         <Field>
-          <FieldLabel htmlFor={`${idPrefix}-email`}>Email</FieldLabel>
+          <FieldLabel htmlFor={`${idPrefix}-email`}>{t("auth.identifierFields.email")}</FieldLabel>
           <Input
             id={`${idPrefix}-email`}
             type="email"
@@ -61,7 +63,9 @@ export function IdentifierFields({ identifier, onChange, idPrefix }: IdentifierF
       <TabsContent value="phone">
         <div className="flex gap-2">
           <Field className="w-24">
-            <FieldLabel htmlFor={`${idPrefix}-country-code`}>Code</FieldLabel>
+            <FieldLabel htmlFor={`${idPrefix}-country-code`}>
+              {t("auth.identifierFields.code")}
+            </FieldLabel>
             <Input
               id={`${idPrefix}-country-code`}
               value={"phoneCountryCode" in identifier ? identifier.phoneCountryCode : "+91"}
@@ -75,7 +79,9 @@ export function IdentifierFields({ identifier, onChange, idPrefix }: IdentifierF
             />
           </Field>
           <Field className="flex-1">
-            <FieldLabel htmlFor={`${idPrefix}-phone`}>Phone number</FieldLabel>
+            <FieldLabel htmlFor={`${idPrefix}-phone`}>
+              {t("auth.identifierFields.phoneNumber")}
+            </FieldLabel>
             <Input
               id={`${idPrefix}-phone`}
               type="tel"

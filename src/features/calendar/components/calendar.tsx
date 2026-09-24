@@ -1,5 +1,6 @@
 import { createContext, useContext, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight, FileDown, InfoIcon, SunriseIcon, SunsetIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import CalendarGridSkeleton from "./CalendarGridSkeleton";
 import ExportEventsDialog from "./ExportEventsDialog";
 import type { ComponentProps, TouchEvent } from "react"
@@ -28,11 +29,6 @@ import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import TopAppBar from "@/components/shared/TopAppBar";
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-]
-
 const YEAR_OPTIONS = Array.from(
   { length: CALENDAR_END_DATE.getFullYear() - CALENDAR_START_DATE.getFullYear() + 1 },
   (_, i) => CALENDAR_START_DATE.getFullYear() + i
@@ -49,6 +45,7 @@ type CalendarContextData = {
 const CalendarDataContext = createContext<CalendarContextData | null>(null)
 
 function DayDetailsHoverContent({ date, data }: { date: Date; data: PanchangamDayData }) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2">
       <DateHeader date={date} kv_date={data.kv} />
@@ -64,8 +61,8 @@ function DayDetailsHoverContent({ date, data }: { date: Date; data: PanchangamDa
         </div>
       </div>
       <div className="flex flex-col gap-0.5 text-xs">
-        <p><span className="font-semibold">Thithi:</span> {data.thithi.en} ({data.thithi.paksha.en})</p>
-        <p><span className="font-semibold">Nakshatra:</span> {data.nakshatra.en}</p>
+        <p><span className="font-semibold">{t("dayDetails.thithiLabel")}:</span> {data.thithi.en} ({data.thithi.paksha.en})</p>
+        <p><span className="font-semibold">{t("dayDetails.nakshatraLabel")}:</span> {data.nakshatra.en}</p>
       </div>
       {data.santhigiri_significant_dates.length > 0 && (
         <>
@@ -135,6 +132,7 @@ function PanchangamDayButton({ day, modifiers, className, children: _children, .
 }
 
 function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date }; displayIndex: number }) {
+  const { t, i18n } = useTranslation()
   const ctx = useContext(CalendarDataContext)
   const startML = ctx?.monthData?.[ctx.startKey]?.kv.kv_month_name_ml ?? ""
   const endML = ctx?.monthData?.[ctx.endKey]?.kv.kv_month_name_ml ?? ""
@@ -150,7 +148,7 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
         <Button
           variant="ghost"
           size="icon-lg"
-          aria-label="Previous month"
+          aria-label={t("calendar.previousMonth")}
           disabled={!canGoPrevious}
           onClick={() => ctx?.setActiveMonth(previousMonth)}
           className="text-primary hover:text-primary [&_svg]:size-6"
@@ -165,15 +163,15 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
             }
           >
             <SelectTrigger
-              aria-label="Month"
+              aria-label={t("calendar.monthAriaLabel")}
               className="h-auto gap-1 border-none bg-transparent p-0 text-lg font-bold text-primary shadow-none hover:bg-transparent focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent [&_svg]:text-primary"
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {MONTH_NAMES.map((name, index) => (
-                <SelectItem key={name} value={String(index)}>
-                  {name}
+              {Array.from({ length: 12 }, (_, index) => (
+                <SelectItem key={index} value={String(index)}>
+                  {new Date(2000, index, 1).toLocaleDateString(i18n.language, { month: "long" })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -185,7 +183,7 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
             }
           >
             <SelectTrigger
-              aria-label="Year"
+              aria-label={t("calendar.yearAriaLabel")}
               className="h-auto gap-1 border-none bg-transparent p-0 text-lg font-bold text-primary shadow-none hover:bg-transparent focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent [&_svg]:text-primary"
             >
               <SelectValue />
@@ -204,13 +202,13 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
             onClick={() => ctx?.setActiveMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
             className="text-muted-foreground hover:text-foreground"
           >
-            This month
+            {t("calendar.thisMonth")}
           </Button>
         </div>
         <Button
           variant="ghost"
           size="icon-lg"
-          aria-label="Next month"
+          aria-label={t("calendar.nextMonth")}
           disabled={!canGoNext}
           onClick={() => ctx?.setActiveMonth(nextMonth)}
           className="text-primary hover:text-primary [&_svg]:size-6"
@@ -228,6 +226,7 @@ function PanchangamMonthCaption({ calendarMonth }: { calendarMonth: { date: Date
 const SWIPE_MIN_DISTANCE = 50
 
 export default function CalendarCustomDays() {
+  const { t } = useTranslation()
   const {
     activeDate,
     setActiveDate,
@@ -266,7 +265,7 @@ export default function CalendarCustomDays() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-stretch">
-        <TopAppBar title="Calendar" />
+        <TopAppBar title={t("nav.calendar")} />
         <div className="w-full flex flex-col gap-2 items-center">
           <div className="w-full">
             <CalendarGridSkeleton />
@@ -289,7 +288,7 @@ export default function CalendarCustomDays() {
 
   return (
     <div className="flex flex-col items-stretch">
-      <TopAppBar title="Calendar" />
+      <TopAppBar title={t("nav.calendar")} />
       <CalendarDataContext.Provider value={{ monthData, activeMonth: activeDate, setActiveMonth: setActiveDate, startKey, endKey }}>
         <div className="w-full flex flex-col gap-2 items-center">
           <div className="w-full touch-pan-y" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
@@ -325,17 +324,17 @@ export default function CalendarCustomDays() {
               <div className="mt-2">
                 <div className="flex items-center justify-between px-2">
                   <p className="font-inter text-xs font-semibold text-muted-foreground md:text-sm">
-                    Events this month
+                    {t("calendar.eventsThisMonth")}
                   </p>
                   <Button
                     variant="ghost"
                     size="sm"
-                    aria-label="Export events"
+                    aria-label={t("calendar.exportEvents")}
                     onClick={() => setIsExportDialogOpen(true)}
                     className="text-primary hover:text-primary"
                   >
                     <FileDown />
-                    Export
+                    {t("calendar.export")}
                   </Button>
                 </div>
                 <div className="grid grid-flow-rows auto-rows-min gap-1">
@@ -350,7 +349,7 @@ export default function CalendarCustomDays() {
                         <HoverCardTrigger asChild>
                           <button
                             type="button"
-                            aria-label={`${event.e.name} details`}
+                            aria-label={t("dayDetails.upcomingEvents.detailsAriaLabel", { name: event.e.name })}
                             className="text-primary/70 hover:text-primary"
                           >
                             <InfoIcon className="h-4 w-4" />
