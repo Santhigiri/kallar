@@ -56,7 +56,7 @@ export default function StarfinderResultPanel({
             {timeOfDay}
           </p>
           <p className="font-inter text-sm font-medium text-muted-foreground">
-            {kv.kv_month_name_en} {kv.kv_day}, {kv.kv_year}
+            {i18n.language === "ml" ? kv.kv_month_name_ml : kv.kv_month_name_en} {kv.kv_day}, {kv.kv_year}
           </p>
         </div>
 
