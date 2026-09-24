@@ -39,7 +39,9 @@
     "sortOrder": "ക്രമം",
     "malayalam": "മലയാളം",
     "english": "ഇംഗ്ലീഷ്",
-    "none": "ഒന്നുമില്ല"
+    "none": "ഒന്നുമില്ല",
+    "today": "ഇന്ന്",
+    "tomorrow": "നാളെ"
   },
   "auth": {
     "login": {

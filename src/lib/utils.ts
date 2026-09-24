@@ -1,9 +1,17 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { getLocaleForTimezone } from "./constants";
+import i18n from "./i18n/config";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+// Panchangam domain values (nakshatra, thithi, paksha, masa, ...) come back
+// from the API with both an `en` and `ml` name — this picks the one matching
+// the active UI language rather than always rendering English.
+export function localizedName(item: { en: string; ml: string }, language: string): string {
+  return language === "ml" ? item.ml : item.en
 }
 
 export function getFormattedDate(datetime: string): string {
@@ -84,8 +92,8 @@ export function getFormattedTimeWithRelativeDay(datetime: string, timeZone?: str
   const toLocalDays = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000
   const dayDiff = toLocalDays(target) - toLocalDays(now)
 
-  if (dayDiff === 0) return `today, ${time}`
-  if (dayDiff === 1) return `tomorrow, ${time}`
+  if (dayDiff === 0) return `${i18n.t("common.today")}, ${time}`
+  if (dayDiff === 1) return `${i18n.t("common.tomorrow")}, ${time}`
 
   const dateOptions: Intl.DateTimeFormatOptions = {
     month: 'short', day: 'numeric',
