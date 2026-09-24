@@ -50,9 +50,11 @@ export default function GuruvaniCard() {
                 <CollapsibleTrigger className="mt-1 flex items-center gap-1 self-start font-inter text-xs font-medium text-primary">
                   {open
                     ? t("dayDetails.guruvani.showLess")
-                    : t("dayDetails.guruvani.readFull", {
-                        language: t(`language.${otherLanguage}`),
-                      })}
+                    : t(
+                        otherLanguage === "en"
+                          ? "dayDetails.guruvani.readInEnglish"
+                          : "dayDetails.guruvani.readInMalayalam",
+                      )}
                   <ChevronDown
                     className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
                   />
