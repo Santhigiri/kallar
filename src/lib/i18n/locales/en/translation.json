@@ -116,7 +116,8 @@
       "title": "Guruvani",
       "errorFallback": "Daily words of wisdom will appear here.",
       "showLess": "Show less",
-      "readFull": "Read full · മലയാളം"
+      "readInEnglish": "Read in English",
+      "readInMalayalam": "Read in Malayalam"
     },
     "upcomingEvents": {
       "title": "Upcoming events",
