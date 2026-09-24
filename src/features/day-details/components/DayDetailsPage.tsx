@@ -82,7 +82,7 @@ export default function DayDetailsPage() {
                   {activeDate.toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" })}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
-                  {activeDateData.kv.kv_day} {activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
+                  {activeDateData.kv.kv_day} {i18n.language === "ml" ? activeDateData.kv.kv_month_name_ml : activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
                 </p>
               </div>
             ) : (
