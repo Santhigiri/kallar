@@ -3,6 +3,7 @@ import { SortableHeader } from "./SortableHeader"
 import type { TFunction } from "i18next"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Guruvani } from "@/features/guruvani/schemas/guruvani"
+import { getGuruvaniText } from "@/features/guruvani/schemas/guruvani"
 import { Button } from "@/components/ui/button"
 
 type BuildColumnsArgs = {
@@ -20,20 +21,20 @@ export function buildGuruvaniColumns({
 }: BuildColumnsArgs): Array<ColumnDef<Guruvani>> {
   const columns: Array<ColumnDef<Guruvani>> = [
     {
-      accessorKey: "text_en",
+      id: "text_en",
       header: ({ column }) => <SortableHeader label={t("common.english")} column={column} />,
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-md whitespace-pre-line">
-          {row.original.text_en}
+          {getGuruvaniText(row.original, "en")}
         </span>
       ),
     },
     {
-      accessorKey: "text_ml",
+      id: "text_ml",
       header: t("common.malayalam"),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-md whitespace-pre-line">
-          {row.original.text_ml}
+          {getGuruvaniText(row.original, "ml")}
         </span>
       ),
     },

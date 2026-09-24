@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type { FormEvent } from "react"
 import type { Guruvani, GuruvaniFormValues } from "@/features/guruvani/schemas/guruvani"
+import { getGuruvaniText } from "@/features/guruvani/schemas/guruvani"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -29,9 +30,9 @@ const EMPTY_FORM: FormState = {
 
 function toFormState(entry: Guruvani): FormState {
   return {
-    text_en: entry.text_en,
-    text_ml: entry.text_ml,
-    sort_order: entry.sort_order?.toString() ?? "",
+    text_en: getGuruvaniText(entry, "en") ?? "",
+    text_ml: getGuruvaniText(entry, "ml") ?? "",
+    sort_order: entry.sort_order.toString(),
   }
 }
 
