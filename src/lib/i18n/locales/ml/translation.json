@@ -116,7 +116,7 @@
       "title": "ഗുരുവാണി",
       "errorFallback": "ദിവസേനയുള്ള ജ്ഞാനവചനങ്ങൾ ഇവിടെ കാണാം.",
       "showLess": "കുറച്ച് കാണിക്കുക",
-      "readFull": "പൂർണ്ണമായി വായിക്കുക · {{language}}"
+      "readFull": "{{language}} വായിക്കുക"
     },
     "upcomingEvents": {
       "title": "വരാനിരിക്കുന്ന പരിപാടികൾ",
