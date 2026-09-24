@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { SettingCard } from "./SettingCard"
 import type { AppSetting } from "@/features/settings/schemas/appSettings"
 import { Field, FieldLabel } from "@/components/ui/field"
@@ -48,6 +49,7 @@ export function FieldsSettingCard({
   fields,
   setting,
 }: FieldsSettingCardProps) {
+  const { t } = useTranslation()
   const value = setting?.value ?? defaultValue
   const initialForm = toFormState(value, fields)
   const [form, setForm] = useState<Record<string, string>>(initialForm)
@@ -79,7 +81,7 @@ export function FieldsSettingCard({
       }
       const parsed = field.type === "int" ? Number.parseInt(raw, 10) : Number.parseFloat(raw)
       if (Number.isNaN(parsed)) {
-        setError(`${field.label} must be a number.`)
+        setError(t("settings.fieldMustBeNumber", { label: field.label }))
         return
       }
       payload[field.name] = parsed
@@ -87,7 +89,7 @@ export function FieldsSettingCard({
     try {
       await updateMutation.mutateAsync({ key: settingKey, value: payload })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save setting.")
+      setError(err instanceof Error ? err.message : t("settings.saveFailed"))
     }
   }
 

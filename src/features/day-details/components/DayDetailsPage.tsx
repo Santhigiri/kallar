@@ -1,6 +1,7 @@
 import { addDays, isToday as isTodayFn } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import SunriseSunsetCard from "./SunriseSunsetCard";
 import SunriseSunsetCardSkeleton from "./SunriseSunsetCardSkeleton";
 import ThithiTransitionCard from "./ThithiTransitionCard";
@@ -48,6 +49,7 @@ function DatePickerDayButton({ className, modifiers, ...props }: ComponentProps<
 }
 
 export default function DayDetailsPage() {
+  const { t, i18n } = useTranslation();
   const { activeDate, setActiveDate, activeDateData, upcomingEvents, isLoading } = useHomePanchangam();
   const { locationCode } = useSelectedLocation();
   const { options: locationOptions } = useLocationOptions();
@@ -58,7 +60,7 @@ export default function DayDetailsPage() {
 
   return (
     <div className="flex flex-col items-stretch">
-      <TopAppBar title="Today" />
+      <TopAppBar title={t("nav.today")} />
 
       <div className="flex flex-col gap-4">
 
@@ -66,18 +68,18 @@ export default function DayDetailsPage() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="font-playfair-display text-2xl leading-tight font-semibold md:text-3xl">
-                {activeDate.toLocaleDateString("en-IN", { weekday: "long" })}
+                {activeDate.toLocaleDateString(i18n.language, { weekday: "long" })}
               </h2>
               {isToday && (
                 <span className="shrink-0 rounded-full bg-accent-100 px-2.5 py-0.5 text-xs font-medium text-accent-800">
-                  Today
+                  {t("dayDetails.todayBadge")}
                 </span>
               )}
             </div>
             {activeDateData ? (
               <div className="mt-1">
                 <p className="truncate text-sm text-muted-foreground">
-                  {activeDate.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+                  {activeDate.toLocaleDateString(i18n.language, { day: "numeric", month: "long", year: "numeric" })}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
                   {activeDateData.kv.kv_day} {activeDateData.kv.kv_month_name_en} {activeDateData.kv.kv_year}
@@ -92,7 +94,7 @@ export default function DayDetailsPage() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Previous day"
+              aria-label={t("dayDetails.previousDay")}
               onClick={() => setActiveDate(addDays(activeDate, -1))}
             >
               <ChevronLeft />
@@ -103,19 +105,19 @@ export default function DayDetailsPage() {
               className="md:h-9 md:gap-1.5 md:rounded-md"
               onClick={() => setActiveDate(new Date())}
             >
-              Today
+              {t("nav.today")}
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Next day"
+              aria-label={t("dayDetails.nextDay")}
               onClick={() => setActiveDate(addDays(activeDate, 1))}
             >
               <ChevronRight />
             </Button>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Pick a date">
+                <Button variant="ghost" size="icon" aria-label={t("dayDetails.pickDate")}>
                   <CalendarIcon />
                 </Button>
               </PopoverTrigger>

@@ -1,10 +1,12 @@
 import { CalendarPlus, Pencil, Trash2 } from "lucide-react"
 import { SortableHeader } from "./SortableHeader"
+import type { TFunction } from "i18next"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { SanthigiriEvent } from "@/features/santhigiri-events/schemas/santhigiriEvent"
 import { Button } from "@/components/ui/button"
 
 type BuildColumnsArgs = {
+  t: TFunction
   canEdit: boolean
   onEdit: (event: SanthigiriEvent) => void
   onDelete: (event: SanthigiriEvent) => void
@@ -12,6 +14,7 @@ type BuildColumnsArgs = {
 }
 
 export function buildSanthigiriEventColumns({
+  t,
   canEdit,
   onEdit,
   onDelete,
@@ -20,11 +23,11 @@ export function buildSanthigiriEventColumns({
   const columns: Array<ColumnDef<SanthigiriEvent>> = [
     {
       accessorKey: "name",
-      header: ({ column }) => <SortableHeader label="Name" column={column} />,
+      header: ({ column }) => <SortableHeader label={t("common.name")} column={column} />,
     },
     {
       accessorKey: "description",
-      header: "Description",
+      header: t("common.description"),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-md whitespace-pre-line">
           {row.original.description.trim()}
@@ -42,7 +45,7 @@ export function buildSanthigiriEventColumns({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Generate occurrences for ${row.original.name}`}
+            aria-label={t("dataAdmin.columns.generateOccurrencesFor", { name: row.original.name })}
             onClick={() => onGenerateOccurrences(row.original)}
           >
             <CalendarPlus />
@@ -50,7 +53,7 @@ export function buildSanthigiriEventColumns({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Edit ${row.original.name}`}
+            aria-label={t("dataAdmin.columns.editName", { name: row.original.name })}
             onClick={() => onEdit(row.original)}
           >
             <Pencil />
@@ -58,7 +61,7 @@ export function buildSanthigiriEventColumns({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete ${row.original.name}`}
+            aria-label={t("dataAdmin.columns.deleteName", { name: row.original.name })}
             onClick={() => onDelete(row.original)}
           >
             <Trash2 />

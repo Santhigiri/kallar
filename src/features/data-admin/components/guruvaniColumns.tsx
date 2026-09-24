@@ -1,16 +1,19 @@
 import { Pencil, Trash2 } from "lucide-react"
 import { SortableHeader } from "./SortableHeader"
+import type { TFunction } from "i18next"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Guruvani } from "@/features/guruvani/schemas/guruvani"
 import { Button } from "@/components/ui/button"
 
 type BuildColumnsArgs = {
+  t: TFunction
   isAdmin: boolean
   onEdit: (entry: Guruvani) => void
   onDelete: (entry: Guruvani) => void
 }
 
 export function buildGuruvaniColumns({
+  t,
   isAdmin,
   onEdit,
   onDelete,
@@ -18,7 +21,7 @@ export function buildGuruvaniColumns({
   const columns: Array<ColumnDef<Guruvani>> = [
     {
       accessorKey: "text_en",
-      header: ({ column }) => <SortableHeader label="English" column={column} />,
+      header: ({ column }) => <SortableHeader label={t("common.english")} column={column} />,
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-md whitespace-pre-line">
           {row.original.text_en}
@@ -27,7 +30,7 @@ export function buildGuruvaniColumns({
     },
     {
       accessorKey: "text_ml",
-      header: "Malayalam",
+      header: t("common.malayalam"),
       cell: ({ row }) => (
         <span className="line-clamp-2 max-w-md whitespace-pre-line">
           {row.original.text_ml}
@@ -36,7 +39,7 @@ export function buildGuruvaniColumns({
     },
     {
       accessorKey: "sort_order",
-      header: ({ column }) => <SortableHeader label="Sort order" column={column} />,
+      header: ({ column }) => <SortableHeader label={t("dataAdmin.eventForm.sortOrder")} column={column} />,
     },
   ]
 
@@ -49,7 +52,7 @@ export function buildGuruvaniColumns({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Edit Guruvani #${row.original.id}`}
+            aria-label={t("dataAdmin.columns.editGuruvani", { id: row.original.id })}
             onClick={() => onEdit(row.original)}
           >
             <Pencil />
@@ -57,7 +60,7 @@ export function buildGuruvaniColumns({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete Guruvani #${row.original.id}`}
+            aria-label={t("dataAdmin.columns.deleteGuruvani", { id: row.original.id })}
             onClick={() => onDelete(row.original)}
           >
             <Trash2 />

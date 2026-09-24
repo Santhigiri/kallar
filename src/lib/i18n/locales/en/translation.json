@@ -17,5 +17,320 @@
     "label": "Language",
     "en": "English",
     "ml": "Malayalam"
+  },
+  "common": {
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "email": "Email",
+    "code": "Code",
+    "close": "Close",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "save": "Save",
+    "saving": "Saving...",
+    "generate": "Generate",
+    "generating": "Generating...",
+    "name": "Name",
+    "description": "Description",
+    "date": "Date",
+    "id": "ID",
+    "sortOrder": "Sort order",
+    "malayalam": "Malayalam",
+    "english": "English",
+    "none": "None"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "description": "Enter your email and password to continue.",
+      "password": "Password",
+      "submitting": "Logging in...",
+      "submit": "Log in",
+      "forgotPassword": "Forgot password?",
+      "signUp": "Sign up"
+    },
+    "signup": {
+      "title": "Sign up",
+      "descriptionIdentifier": "Enter your email to get started.",
+      "descriptionCode": "Enter the verification code we sent you.",
+      "descriptionProfile": "Tell us a bit about yourself.",
+      "sendingCode": "Sending code...",
+      "sendCode": "Send verification code",
+      "verificationCode": "Verification code",
+      "verifying": "Verifying...",
+      "verify": "Verify",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "gender": "Gender",
+      "genderOptions": {
+        "MALE": "Male",
+        "FEMALE": "Female",
+        "OTHER": "Other"
+      },
+      "dob": "Date of birth",
+      "password": "Password",
+      "isWhatsApp": "This number is on WhatsApp",
+      "creatingAccount": "Creating account...",
+      "createAccount": "Create account"
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "descriptionIdentifier": "Enter your email to receive a reset code.",
+      "descriptionCode": "Enter the reset code we sent you.",
+      "descriptionNewPassword": "Choose a new password.",
+      "sending": "Sending...",
+      "sendResetCode": "Send reset code",
+      "resetCode": "Reset code",
+      "verifying": "Verifying...",
+      "verify": "Verify",
+      "newPassword": "New password",
+      "resetting": "Resetting...",
+      "resetPassword": "Reset password",
+      "successToast": "Password reset — log in with your new password"
+    },
+    "identifierFields": {
+      "email": "Email",
+      "phone": "Phone",
+      "code": "Code",
+      "phoneNumber": "Phone number"
+    }
+  },
+  "dayDetails": {
+    "todayBadge": "Today",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "pickDate": "Pick a date",
+    "thithiLabel": "Thithi",
+    "nakshatraLabel": "Nakshatra",
+    "thithiNakshatraTitle": "Thithi & Nakshatra",
+    "until": "until {{time}}",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "daylight": "daylight · {{hours}}h {{minutes}}m",
+    "nazhikaFromSunrise": "Nazhika from sunrise",
+    "guruvani": {
+      "title": "Guruvani",
+      "errorFallback": "Daily words of wisdom will appear here.",
+      "showLess": "Show less",
+      "readFull": "Read full · മലയാളം"
+    },
+    "upcomingEvents": {
+      "title": "Upcoming events",
+      "empty": "No upcoming events in the next 30 days.",
+      "detailsAriaLabel": "{{name}} details"
+    }
+  },
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "monthAriaLabel": "Month",
+    "yearAriaLabel": "Year",
+    "thisMonth": "This month",
+    "eventsThisMonth": "Events this month",
+    "exportEvents": "Export events",
+    "export": "Export",
+    "exportDialog": {
+      "title": "Export Santhigiri events",
+      "description": "Download a one-time calendar file, or subscribe to the live feed URL so new events keep syncing automatically.",
+      "downloading": "Downloading...",
+      "downloadIcs": "Download .ics file",
+      "downloadError": "Failed to download calendar file",
+      "copyUrl": "Copy calendar URL",
+      "copySuccess": "Calendar URL copied to clipboard",
+      "copyError": "Failed to copy calendar URL",
+      "addToGoogle": "Add to Google Calendar",
+      "step1": "Copy the calendar URL above.",
+      "step2Prefix": "In Google Calendar, go to",
+      "otherCalendars": "Other calendars",
+      "fromUrl": "From URL",
+      "step3": "Paste the URL and click Add calendar."
+    }
+  },
+  "starfinder": {
+    "location": "Location",
+    "locationPlaceholder": "Search for a city or place",
+    "minChars": "Type at least 3 characters to search.",
+    "searching": "Searching…",
+    "noResults": "No matching places found.",
+    "date": "Date",
+    "time": "Time",
+    "finding": "Finding…",
+    "find": "Find",
+    "emptyStateDescription": "Pick a place, date and time to see the panchangam active there.",
+    "nakshatraTransitions": "Nakshatra Transitions",
+    "thithiTransitions": "Thithi Transitions",
+    "paksha": "Paksha",
+    "start": "Start",
+    "end": "End"
+  },
+  "shared": {
+    "location": "Location",
+    "openMenu": "Open menu",
+    "updateAvailable": "Update available",
+    "refresh": "Refresh"
+  },
+  "dataAdmin": {
+    "title": "Panchangam Data",
+    "tabs": {
+      "panchangam": "Panchangam",
+      "nakshatra": "Nakshatra",
+      "thithi": "Thithi",
+      "santhigiriEvents": "Santhigiri Events",
+      "guruvanis": "Guruvanis"
+    },
+    "comingSoon": "{{label}} data is coming soon.",
+    "panchangamTab": {
+      "generateTitle": "Generate",
+      "selectDateRange": "Select date range",
+      "loginAsAdmin": "Log in as an admin to generate data.",
+      "onlyAdmins": "Only admins can generate data.",
+      "progress": "{{completed}}/{{total}} days ({{date}})",
+      "generatedSuccess": "Generated {{count}} day(s) from {{start}} to {{end}}.",
+      "generateFailed": "Failed to generate panchangam data.",
+      "notGenerated": "This month hasn't been generated yet.",
+      "rangeRequired": "Select a date range to generate."
+    },
+    "nakshatraTab": {
+      "loadError": "Failed to load nakshatra data."
+    },
+    "thithiTab": {
+      "loadError": "Failed to load thithi data."
+    },
+    "santhigiriEventsTab": {
+      "title": "Santhigiri Events",
+      "addEvent": "Add event",
+      "loadError": "Failed to load Santhigiri events.",
+      "deleteTitle": "Delete {{name}}?",
+      "deleteDescription": "This permanently removes the event definition. This can't be undone."
+    },
+    "guruvaniTab": {
+      "add": "Add Guruvani",
+      "loadError": "Failed to load Guruvani.",
+      "deleteTitle": "Delete Guruvani #{{id}}?",
+      "deleteDescription": "This permanently removes the Guruvani quote. This can't be undone."
+    },
+    "eventForm": {
+      "editTitle": "Edit event",
+      "newTitle": "New event",
+      "editDescription": "Update the definition for {{id}}.",
+      "newDescription": "Define a new Santhigiri event and its matching condition.",
+      "eventId": "Event ID",
+      "eventIdPlaceholder": "Generated from the name",
+      "sortOrder": "Sort order",
+      "malayalamDay": "Malayalam day",
+      "malayalamMasa": "Malayalam masa",
+      "malayalamYear": "Malayalam year",
+      "lunarDay": "Lunar day",
+      "lunarMonth": "Lunar month",
+      "englishDay": "English day",
+      "englishMonth": "English month",
+      "englishYear": "English year",
+      "occurrence": "Occurrence",
+      "yieldsTo": "Yields to",
+      "isPoornima": "Is Poornima",
+      "lastOccurrence": "Last occurrence",
+      "triState": {
+        "notCriterion": "Not a criterion",
+        "mustMatch": "Must match",
+        "mustNotMatch": "Must not match"
+      },
+      "nameRequired": "Name must contain at least one letter or number to generate an event ID.",
+      "saveChanges": "Save changes",
+      "createEvent": "Create event"
+    },
+    "generateOccurrences": {
+      "title": "Generate occurrences",
+      "description": "Recompute {{name}}'s occurrence dates for a range of years from the stored panchangam data. This replaces any dates already generated for those years.",
+      "startYear": "Start year",
+      "endYear": "End year",
+      "rangeInvalid": "End year must be on or after start year.",
+      "rangeTooLarge": "Year range too large (max {{max}} years).",
+      "progress": "{{completed}}/{{total}} years ({{year}})",
+      "noOccurrences": "no occurrences",
+      "occurrenceCount": "{{count}} occurrence(s)",
+      "generateFailed": "Failed to generate occurrences.",
+      "copyDates": "Copy dates",
+      "copySuccess": "Occurrence dates copied to clipboard"
+    },
+    "guruvaniForm": {
+      "editTitle": "Edit Guruvani",
+      "newTitle": "New Guruvani",
+      "editDescription": "Update Guruvani #{{id}}.",
+      "newDescription": "Add a new Guruvani quote.",
+      "sortOrderPlaceholder": "Assigned automatically when left blank",
+      "textRequired": "Both English and Malayalam text are required.",
+      "create": "Create"
+    },
+    "columns": {
+      "kollavarsham": "Kollavarsham",
+      "editGuruvani": "Edit Guruvani #{{id}}",
+      "deleteGuruvani": "Delete Guruvani #{{id}}",
+      "generateOccurrencesFor": "Generate occurrences for {{name}}",
+      "editName": "Edit {{name}}",
+      "deleteName": "Delete {{name}}"
+    }
+  },
+  "settings": {
+    "adminOnly": "Settings are only available to admins.",
+    "loading": "Loading...",
+    "loadError": "Failed to load settings.",
+    "seedYearRange": {
+      "title": "Seed year range",
+      "description": "The inclusive year range the database is expected to have panchangam data seeded for. Drives the valid year bound on /panchangam/month and /panchangam/year.",
+      "startYear": "Start year",
+      "endYear": "End year"
+    },
+    "defaultLocation": {
+      "title": "Default location",
+      "description": "The location code served when a request omits ?location=.",
+      "code": "Location code"
+    },
+    "maxGenerateSpan": {
+      "title": "Max generation span (days)",
+      "description": "Shared cap on the size of a live-generation date range, for the panchangam and kollavarsham /generate endpoints.",
+      "maxDays": "Max days"
+    },
+    "maxEventGenerateSpan": {
+      "title": "Max event generation span (years)",
+      "description": "Cap on the size of a Santhigiri event occurrence-generation year range.",
+      "maxYears": "Max years"
+    },
+    "eventCutoffs": {
+      "title": "Event day-attribution cutoffs",
+      "description": "The 7.5 Nazhika rule for last-occurrence events, and the 3-hour cutoff for nakshatra-transition-series events.",
+      "nazhikaCutoff": "Nazhika cutoff",
+      "transitionHourCutoff": "Transition hour cutoff"
+    },
+    "astronomyEpsilons": {
+      "title": "Astronomy epsilons",
+      "description": "Small boundary-tie epsilons used by the discrete-transition search and the Kollavarsham raasi calculation. Fragile, correctness-critical internals — change with caution.",
+      "nakshatraEpsilon": "Nakshatra epsilon",
+      "kollavarshamEpsilon": "Kollavarsham epsilon"
+    },
+    "nakshatraStepDays": {
+      "title": "Nakshatra transition step size",
+      "description": "Skyfield search step (days) used to find Nakshatra transitions, with optional per-year overrides (e.g. a year that needs a coarser step). Fragile, correctness-critical — change with caution.",
+      "defaultStep": "Default step (days)",
+      "perYearOverrides": "Per-year overrides",
+      "yearPlaceholder": "Year, e.g. 2028",
+      "stepPlaceholder": "Step (days)",
+      "removeOverride": "Remove override",
+      "addOverride": "Add override",
+      "defaultStepMustBeNumber": "Default step must be a number.",
+      "invalidYear": "\"{{year}}\" is not a valid 4-digit year.",
+      "overrideStepMustBeNumber": "The override step for {{year}} must be a number."
+    },
+    "fieldMustBeNumber": "{{label}} must be a number.",
+    "saveFailed": "Failed to save setting.",
+    "card": {
+      "lastUpdated": "Last updated {{time}}",
+      "lastUpdatedBy": "Last updated {{time}} by {{by}}",
+      "usingDefault": "Using default value — not yet customized.",
+      "reset": "Reset",
+      "saving": "Saving...",
+      "save": "Save"
+    }
   }
 }

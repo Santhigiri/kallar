@@ -1,18 +1,21 @@
 import { SortableHeader } from "./SortableHeader"
+import type { TFunction } from "i18next"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Nakshatra } from "@/features/panchangam/schemas/panchangamData"
 
-export const nakshatraColumns: Array<ColumnDef<Nakshatra>> = [
-  {
-    accessorKey: "id",
-    header: ({ column }) => <SortableHeader label="ID" column={column} />,
-  },
-  {
-    accessorKey: "en",
-    header: ({ column }) => <SortableHeader label="Name" column={column} />,
-  },
-  {
-    accessorKey: "ml",
-    header: "Malayalam",
-  },
-]
+export function buildNakshatraColumns(t: TFunction): Array<ColumnDef<Nakshatra>> {
+  return [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <SortableHeader label={t("common.id")} column={column} />,
+    },
+    {
+      accessorKey: "en",
+      header: ({ column }) => <SortableHeader label={t("common.name")} column={column} />,
+    },
+    {
+      accessorKey: "ml",
+      header: t("common.malayalam"),
+    },
+  ]
+}

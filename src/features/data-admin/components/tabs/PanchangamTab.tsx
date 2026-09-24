@@ -2,7 +2,8 @@ import { useState } from "react"
 import { format, parseISO, startOfMonth } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
-import { panchangamColumns } from "../columns"
+import { useTranslation } from "react-i18next"
+import { buildPanchangamColumns } from "../columns"
 import type { DateRange } from "react-day-picker"
 import type { PanchangamGenerateProgress } from "@/features/panchangam/schemas/compactPanchangamData"
 import { generatePanchangam } from "@/features/panchangam/api/panchangamGeneration"
@@ -26,17 +27,13 @@ import { CALENDAR_END_DATE, CALENDAR_START_DATE } from "@/lib/constants"
 
 const LOCATION = "tvm"
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-]
-
 const YEAR_OPTIONS = Array.from(
   { length: CALENDAR_END_DATE.getFullYear() - CALENDAR_START_DATE.getFullYear() + 1 },
   (_, i) => CALENDAR_START_DATE.getFullYear() + i
 )
 
 export default function PanchangamTab() {
+  const { t, i18n } = useTranslation()
   const { isAuthenticated, role } = useAuth()
   const isAdmin = isAtLeast(role, "ADMIN")
 
@@ -56,7 +53,7 @@ export default function PanchangamTab() {
   const generateMutation = useMutation({
     mutationFn: () => {
       if (!range?.from || !range.to) {
-        throw new Error("Select a date range to generate.")
+        throw new Error(t("dataAdmin.panchangamTab.rangeRequired"))
       }
       setProgress(null)
       return generatePanchangam(range.from, range.to, LOCATION, setProgress)
@@ -77,7 +74,7 @@ export default function PanchangamTab() {
     <div className="flex flex-col gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Generate</CardTitle>
+          <CardTitle>{t("dataAdmin.panchangamTab.generateTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -89,7 +86,7 @@ export default function PanchangamTab() {
                     ? range.to
                       ? `${format(range.from, "d MMM yyyy")} – ${format(range.to, "d MMM yyyy")}`
                       : format(range.from, "d MMM yyyy")
-                    : "Select date range"}
+                    : t("dataAdmin.panchangamTab.selectDateRange")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
@@ -109,16 +106,16 @@ export default function PanchangamTab() {
               disabled={!isAdmin || generateMutation.isPending || !range?.from || !range.to}
               onClick={() => generateMutation.mutate()}
             >
-              {generateMutation.isPending ? "Generating..." : "Generate"}
+              {generateMutation.isPending ? t("common.generating") : t("common.generate")}
             </Button>
             {!isAuthenticated && (
               <span className="text-sm text-muted-foreground">
-                Log in as an admin to generate data.
+                {t("dataAdmin.panchangamTab.loginAsAdmin")}
               </span>
             )}
             {isAuthenticated && !isAdmin && (
               <span className="text-sm text-muted-foreground">
-                Only admins can generate data.
+                {t("dataAdmin.panchangamTab.onlyAdmins")}
               </span>
             )}
           </div>
@@ -127,21 +124,28 @@ export default function PanchangamTab() {
             <div className="flex flex-col gap-1">
               <Progress value={progress.percent} />
               <span className="text-sm text-muted-foreground">
-                {progress.completed}/{progress.total} days ({format(parseISO(progress.current_date), "d MMM")})
+                {t("dataAdmin.panchangamTab.progress", {
+                  completed: progress.completed,
+                  total: progress.total,
+                  date: format(parseISO(progress.current_date), "d MMM"),
+                })}
               </span>
             </div>
           )}
           {generateMutation.isSuccess && (
             <p className="text-sm text-foreground">
-              Generated {generateMutation.data.count} day(s) from{" "}
-              {generateMutation.data.start_date} to {generateMutation.data.end_date}.
+              {t("dataAdmin.panchangamTab.generatedSuccess", {
+                count: generateMutation.data.count,
+                start: generateMutation.data.start_date,
+                end: generateMutation.data.end_date,
+              })}
             </p>
           )}
           {generateMutation.isError && (
             <p className="text-sm text-destructive">
               {generateMutation.error instanceof Error
                 ? generateMutation.error.message
-                : "Failed to generate panchangam data."}
+                : t("dataAdmin.panchangamTab.generateFailed")}
             </p>
           )}
         </CardContent>
@@ -157,13 +161,13 @@ export default function PanchangamTab() {
                 setActiveMonth((m) => startOfMonth(new Date(m.getFullYear(), Number(value), 1)))
               }
             >
-              <SelectTrigger aria-label="Month">
+              <SelectTrigger aria-label={t("calendar.monthAriaLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {MONTH_NAMES.map((name, index) => (
-                  <SelectItem key={name} value={String(index)}>
-                    {name}
+                {Array.from({ length: 12 }, (_, index) => (
+                  <SelectItem key={index} value={String(index)}>
+                    {new Date(2000, index, 1).toLocaleDateString(i18n.language, { month: "long" })}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -174,7 +178,7 @@ export default function PanchangamTab() {
                 setActiveMonth((m) => startOfMonth(new Date(Number(value), m.getMonth(), 1)))
               }
             >
-              <SelectTrigger aria-label="Year">
+              <SelectTrigger aria-label={t("calendar.yearAriaLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -189,15 +193,15 @@ export default function PanchangamTab() {
         </CardHeader>
         <CardContent>
           {isLoading && (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
           )}
           {isError && (
             <p className="text-sm text-destructive">
-              This month hasn't been generated yet.
+              {t("dataAdmin.panchangamTab.notGenerated")}
             </p>
           )}
           {!isLoading && !isError && rows.length > 0 && (
-            <DataTable columns={panchangamColumns} data={rows} />
+            <DataTable columns={buildPanchangamColumns(t)} data={rows} />
           )}
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import GuruvaniTab from "./tabs/GuruvaniTab"
 import NakshatraTab from "./tabs/NakshatraTab"
 import PanchangamTab from "./tabs/PanchangamTab"
@@ -7,23 +8,24 @@ import TopAppBar from "@/components/shared/TopAppBar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const TABS = [
-  { value: "panchangam", label: "Panchangam" },
-  { value: "nakshatra", label: "Nakshatra" },
-  { value: "thithi", label: "Thithi" },
-  { value: "santhigiri-events", label: "Santhigiri Events" },
-  { value: "guruvanis", label: "Guruvanis" },
+  { value: "panchangam", labelKey: "dataAdmin.tabs.panchangam" },
+  { value: "nakshatra", labelKey: "dataAdmin.tabs.nakshatra" },
+  { value: "thithi", labelKey: "dataAdmin.tabs.thithi" },
+  { value: "santhigiri-events", labelKey: "dataAdmin.tabs.santhigiriEvents" },
+  { value: "guruvanis", labelKey: "dataAdmin.tabs.guruvanis" },
 ]
 
 export default function PanchangamDataPage() {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col items-stretch">
-      <TopAppBar title="Panchangam Data" />
+      <TopAppBar title={t("dataAdmin.title")} />
 
       <Tabs defaultValue="panchangam" className="p-2">
         <TabsList>
-          {TABS.map(({ value, label }) => (
+          {TABS.map(({ value, labelKey }) => (
             <TabsTrigger key={value} value={value}>
-              {label}
+              {t(labelKey)}
             </TabsTrigger>
           ))}
         </TabsList>

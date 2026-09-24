@@ -1,4 +1,5 @@
 import { MapPin } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { useSelectedLocation } from "@/hooks/useSelectedLocation"
 import { useLocationOptions } from "@/hooks/useLocationOptions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -8,6 +9,7 @@ type LocationPickerProps = {
 }
 
 export default function LocationPicker({ showLabel }: LocationPickerProps) {
+  const { t } = useTranslation()
   const { locationCode, setLocationCode } = useSelectedLocation()
   const { options: locationOptions } = useLocationOptions()
 
@@ -22,7 +24,7 @@ export default function LocationPicker({ showLabel }: LocationPickerProps) {
     <div className="flex flex-col gap-1.5 px-2">
       {showLabel && (
         <span className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-          Location
+          {t("shared.location")}
         </span>
       )}
       <Select value={locationCode} onValueChange={setLocationCode}>

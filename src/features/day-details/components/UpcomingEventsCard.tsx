@@ -1,5 +1,6 @@
 import { format } from "date-fns"
 import { InfoIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { UpcomingEvent } from "@/features/day-details/hooks/useHomePanchangam"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
@@ -9,15 +10,18 @@ export type UpcomingEventsCardProps = {
 }
 
 export default function UpcomingEventsCard({ events }: UpcomingEventsCardProps) {
+  const { t } = useTranslation()
   return (
     <Card className="border-l-4 border-l-primary rounded-md py-3 gap-0">
       <CardHeader className="pb-2">
-        <p className="font-semibold text-xs text-muted-foreground">UPCOMING EVENTS</p>
+        <p className="font-semibold text-xs text-muted-foreground uppercase">
+          {t("dayDetails.upcomingEvents.title")}
+        </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         {events.length === 0 && (
           <p className="text-xs text-muted-foreground font-inter">
-            No upcoming events in the next 30 days.
+            {t("dayDetails.upcomingEvents.empty")}
           </p>
         )}
         {events.map(({ date, event }, idx) => (
@@ -31,7 +35,7 @@ export default function UpcomingEventsCard({ events }: UpcomingEventsCardProps) 
               <HoverCardTrigger asChild>
                 <button
                   type="button"
-                  aria-label={`${event.name} details`}
+                  aria-label={t("dayDetails.upcomingEvents.detailsAriaLabel", { name: event.name })}
                   className="ml-auto shrink-0 text-primary/70 hover:text-primary"
                 >
                   <InfoIcon className="h-4 w-4" />

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { EventFormDialog } from "../EventFormDialog"
 import { GenerateOccurrencesDialog } from "../GenerateOccurrencesDialog"
 import { buildSanthigiriEventColumns } from "../santhigiriEventColumns"
@@ -28,6 +29,7 @@ import {
 import { isAtLeast } from "@/lib/auth/roles"
 
 export default function SanthigiriEventsTab() {
+  const { t } = useTranslation()
   const { role } = useAuth()
   const isEditor = isAtLeast(role, "EDITOR")
 
@@ -44,6 +46,7 @@ export default function SanthigiriEventsTab() {
   const deleteMutation = useDeleteSanthigiriEvent()
 
   const columns = buildSanthigiriEventColumns({
+    t,
     canEdit: isEditor,
     onEdit: (event) => setEditingId(event.id),
     onDelete: (event) => setDeletingEvent(event),
@@ -53,20 +56,20 @@ export default function SanthigiriEventsTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Santhigiri Events</CardTitle>
+        <CardTitle>{t("dataAdmin.santhigiriEventsTab.title")}</CardTitle>
         {isEditor && (
           <CardAction>
             <Button size="sm" onClick={() => setIsCreateOpen(true)}>
               <Plus />
-              Add event
+              {t("dataAdmin.santhigiriEventsTab.addEvent")}
             </Button>
           </CardAction>
         )}
       </CardHeader>
       <CardContent>
-        {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+        {isLoading && <p className="text-sm text-muted-foreground">{t("common.loading")}</p>}
         {isError && (
-          <p className="text-sm text-destructive">Failed to load Santhigiri events.</p>
+          <p className="text-sm text-destructive">{t("dataAdmin.santhigiriEventsTab.loadError")}</p>
         )}
         {data && <DataTable columns={columns} data={data} />}
       </CardContent>
@@ -101,13 +104,15 @@ export default function SanthigiriEventsTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete {deletingEvent?.name}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("dataAdmin.santhigiriEventsTab.deleteTitle", { name: deletingEvent?.name })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the event definition. This can't be undone.
+              {t("dataAdmin.santhigiriEventsTab.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deletingEvent) {
@@ -116,7 +121,7 @@ export default function SanthigiriEventsTab() {
                 }
               }}
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

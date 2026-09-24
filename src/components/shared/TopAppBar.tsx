@@ -1,4 +1,5 @@
 import { Menu } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import type { JSX } from "react"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
@@ -9,6 +10,7 @@ export type AppBarProps = {
 }
 
 export default function TopAppBar({ title, actions }: AppBarProps) {
+  const { t } = useTranslation()
   const { toggleSidebar } = useSidebar()
 
   return (
@@ -23,7 +25,7 @@ export default function TopAppBar({ title, actions }: AppBarProps) {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Open menu"
+            aria-label={t("shared.openMenu")}
             className="md:hidden"
             onClick={toggleSidebar}
           >

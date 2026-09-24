@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { CalendarIcon, MapPinIcon, Telescope } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import StarfinderResultPanel from "./StarfinderResultPanel"
 import StarfinderResultPanelSkeleton from "./StarfinderResultPanelSkeleton"
 import StarfinderThithiTransitionsCard from "./StarfinderThithiTransitionsCard"
@@ -31,6 +32,7 @@ import {
 } from "@/lib/constants"
 
 export default function StarfinderPage() {
+  const { t, i18n } = useTranslation()
   const [date, setDate] = useState<Date>(new Date())
   const [datePickerOpen, setDatePickerOpen] = useState(false)
   const [timeOfDay, setTimeOfDay] = useState("12:00")
@@ -83,7 +85,7 @@ export default function StarfinderPage() {
 
   return (
     <div className="flex flex-col items-stretch">
-      <TopAppBar title="Explore" />
+      <TopAppBar title={t("nav.explore")} />
 
       <div className="flex flex-col gap-3 px-2 lg:grid lg:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] lg:items-start lg:gap-4 lg:px-0">
         <form onSubmit={handleSubmit} className="px-2 lg:px-0">
@@ -92,7 +94,7 @@ export default function StarfinderPage() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="starfinder-location-search">
-                    Location
+                    {t("starfinder.location")}
                   </FieldLabel>
                   <Popover
                     open={locationResultsOpen}
@@ -104,7 +106,7 @@ export default function StarfinderPage() {
                         <Input
                           id="starfinder-location-search"
                           type="text"
-                          placeholder="Search for a city or place"
+                          placeholder={t("starfinder.locationPlaceholder")}
                           className="pl-8"
                           value={locationQuery}
                           onChange={(event) => {
@@ -131,11 +133,11 @@ export default function StarfinderPage() {
                     >
                       {locationQuery.trim().length < 3 ? (
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">
-                          Type at least 3 characters to search.
+                          {t("starfinder.minChars")}
                         </p>
                       ) : locationSearch.isFetching ? (
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">
-                          Searching…
+                          {t("starfinder.searching")}
                         </p>
                       ) : locationSearch.data &&
                         locationSearch.data.length > 0 ? (
@@ -154,7 +156,7 @@ export default function StarfinderPage() {
                         </ul>
                       ) : (
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">
-                          No matching places found.
+                          {t("starfinder.noResults")}
                         </p>
                       )}
                     </PopoverContent>
@@ -169,7 +171,7 @@ export default function StarfinderPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <Field>
-                    <FieldLabel htmlFor="starfinder-date">Date</FieldLabel>
+                    <FieldLabel htmlFor="starfinder-date">{t("starfinder.date")}</FieldLabel>
                     <Popover
                       open={datePickerOpen}
                       onOpenChange={setDatePickerOpen}
@@ -182,7 +184,7 @@ export default function StarfinderPage() {
                           className="justify-start"
                         >
                           <CalendarIcon />
-                          {date.toLocaleDateString("default", {
+                          {date.toLocaleDateString(i18n.language, {
                             year: "numeric",
                             month: "short",
                             day: "numeric",
@@ -213,7 +215,7 @@ export default function StarfinderPage() {
                   </Field>
 
                   <Field>
-                    <FieldLabel htmlFor="starfinder-time">Time</FieldLabel>
+                    <FieldLabel htmlFor="starfinder-time">{t("starfinder.time")}</FieldLabel>
                     <Input
                       id="starfinder-time"
                       type="time"
@@ -225,7 +227,7 @@ export default function StarfinderPage() {
                 </div>
 
                 <Button type="submit" disabled={!isValid || query.isFetching}>
-                  {query.isFetching ? "Finding…" : "Find"}
+                  {query.isFetching ? t("starfinder.finding") : t("starfinder.find")}
                 </Button>
               </FieldGroup>
             </CardContent>
@@ -238,7 +240,7 @@ export default function StarfinderPage() {
               <p className="text-center text-sm text-destructive">
                 {query.error instanceof Error
                   ? query.error.message
-                  : "Something went wrong."}
+                  : t("common.somethingWentWrong")}
               </p>
             ) : enriched ? (
               <>
@@ -272,8 +274,7 @@ export default function StarfinderPage() {
               <CardContent className="flex min-h-60 flex-col items-center justify-center gap-3 px-4 text-center">
                 <Telescope className="size-9 text-muted-foreground" />
                 <p className="max-w-64 text-sm text-muted-foreground">
-                  Pick a place, date and time to see the panchangam active
-                  there.
+                  {t("starfinder.emptyStateDescription")}
                 </p>
               </CardContent>
             </Card>

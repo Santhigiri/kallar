@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 import type { KollavarshamDate, Nakshatra, NakshatraTransition, Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
 import { getFormattedTimeWithRelativeDay } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
@@ -31,38 +32,49 @@ export default function ThithiNakshatraCard({
   timeZone,
   timeZoneAbbreviation,
 }: ThithiNakshatraCardProps) {
+  const { t } = useTranslation()
   const thithiEnd = currentWindowEnd(
-    thithiTransitions.map((t) => ({ ...t, name: t.thithi.en })),
+    thithiTransitions.map((transition) => ({ ...transition, name: transition.thithi.en })),
     thithi.en
   )
   const nakshatraEnd = currentWindowEnd(
-    nakshatraTransitions.map((t) => ({ ...t, name: t.nakshatra.en })),
+    nakshatraTransitions.map((transition) => ({ ...transition, name: transition.nakshatra.en })),
     nakshatra.en
   )
 
   return (
     <Card className="gap-4 rounded-md bg-accent-100 py-6">
       <CardContent className="flex flex-col gap-4">
-        <p className="text-xs font-semibold tracking-wide text-accent-700 uppercase">Thithi &amp; Nakshatra</p>
+        <p className="text-xs font-semibold tracking-wide text-accent-700 uppercase">
+          {t("dayDetails.thithiNakshatraTitle")}
+        </p>
         <div className="flex gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] tracking-wide text-accent-700 uppercase">Thithi</p>
+            <p className="text-[11px] tracking-wide text-accent-700 uppercase">
+              {t("dayDetails.thithiLabel")}
+            </p>
             <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{thithi.en}</p>
             <p className="mt-0.5 text-xs text-accent-700">{thithi.paksha.en}</p>
             {thithiEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                until {getFormattedTimeWithRelativeDay(thithiEnd, timeZone, timeZoneAbbreviation)}
+                {t("dayDetails.until", {
+                  time: getFormattedTimeWithRelativeDay(thithiEnd, timeZone, timeZoneAbbreviation),
+                })}
               </p>
             )}
           </div>
           <div className="w-px shrink-0 bg-border" />
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] tracking-wide text-accent-700 uppercase">Nakshatra</p>
+            <p className="text-[11px] tracking-wide text-accent-700 uppercase">
+              {t("dayDetails.nakshatraLabel")}
+            </p>
             <p className="mt-1 truncate font-playfair-display text-[22px] leading-tight">{nakshatra.en}</p>
             <p className="mt-0.5 text-xs text-accent-700">{kv.kv_month_name_en}</p>
             {nakshatraEnd && (
               <p className="mt-1.5 text-xs text-muted-foreground">
-                until {getFormattedTimeWithRelativeDay(nakshatraEnd, timeZone, timeZoneAbbreviation)}
+                {t("dayDetails.until", {
+                  time: getFormattedTimeWithRelativeDay(nakshatraEnd, timeZone, timeZoneAbbreviation),
+                })}
               </p>
             )}
           </div>

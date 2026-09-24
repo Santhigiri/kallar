@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { GuruvaniFormDialog } from "../GuruvaniFormDialog"
 import { buildGuruvaniColumns } from "../guruvaniColumns"
 import type { Guruvani } from "@/features/guruvani/schemas/guruvani"
@@ -26,6 +27,7 @@ import {
 } from "@/features/guruvani/hooks/useGuruvaniMutations"
 
 export default function GuruvaniTab() {
+  const { t } = useTranslation()
   const { role } = useAuth()
   const isAdmin = isAtLeast(role, "ADMIN")
 
@@ -40,6 +42,7 @@ export default function GuruvaniTab() {
   const deleteMutation = useDeleteGuruvani()
 
   const columns = buildGuruvaniColumns({
+    t,
     isAdmin,
     onEdit: (entry) => setEditingEntry(entry),
     onDelete: (entry) => setDeletingEntry(entry),
@@ -48,19 +51,19 @@ export default function GuruvaniTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Guruvani</CardTitle>
+        <CardTitle>{t("dayDetails.guruvani.title")}</CardTitle>
         {isAdmin && (
           <CardAction>
             <Button size="sm" onClick={() => setIsCreateOpen(true)}>
               <Plus />
-              Add Guruvani
+              {t("dataAdmin.guruvaniTab.add")}
             </Button>
           </CardAction>
         )}
       </CardHeader>
       <CardContent>
-        {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
-        {isError && <p className="text-sm text-destructive">Failed to load Guruvani.</p>}
+        {isLoading && <p className="text-sm text-muted-foreground">{t("common.loading")}</p>}
+        {isError && <p className="text-sm text-destructive">{t("dataAdmin.guruvaniTab.loadError")}</p>}
         {data && <DataTable columns={columns} data={data} />}
       </CardContent>
 
@@ -88,13 +91,15 @@ export default function GuruvaniTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Guruvani #{deletingEntry?.id}?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("dataAdmin.guruvaniTab.deleteTitle", { id: deletingEntry?.id })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This permanently removes the Guruvani quote. This can't be undone.
+              {t("dataAdmin.guruvaniTab.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (deletingEntry) {
@@ -103,7 +108,7 @@ export default function GuruvaniTab() {
                 }
               }}
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
