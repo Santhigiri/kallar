@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { APP_TIMEZONE, CALENDAR_END_DATE, CALENDAR_START_DATE, POURNAMI_EVENT_ID } from "@/lib/constants";
-import { cn, getFormattedTime } from "@/lib/utils";
+import { cn, getFormattedTime, localizedName } from "@/lib/utils";
 import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import TopAppBar from "@/components/shared/TopAppBar";
@@ -45,7 +45,7 @@ type CalendarContextData = {
 const CalendarDataContext = createContext<CalendarContextData | null>(null)
 
 function DayDetailsHoverContent({ date, data }: { date: Date; data: PanchangamDayData }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="flex flex-col gap-2">
       <DateHeader date={date} kv_date={data.kv} />
@@ -61,8 +61,8 @@ function DayDetailsHoverContent({ date, data }: { date: Date; data: PanchangamDa
         </div>
       </div>
       <div className="flex flex-col gap-0.5 text-xs">
-        <p><span className="font-semibold">{t("dayDetails.thithiLabel")}:</span> {data.thithi.en} ({data.thithi.paksha.en})</p>
-        <p><span className="font-semibold">{t("dayDetails.nakshatraLabel")}:</span> {data.nakshatra.en}</p>
+        <p><span className="font-semibold">{t("dayDetails.thithiLabel")}:</span> {localizedName(data.thithi, i18n.language)} ({localizedName(data.thithi.paksha, i18n.language)})</p>
+        <p><span className="font-semibold">{t("dayDetails.nakshatraLabel")}:</span> {localizedName(data.nakshatra, i18n.language)}</p>
       </div>
       {data.santhigiri_significant_dates.length > 0 && (
         <>
@@ -81,6 +81,7 @@ function DayDetailsHoverContent({ date, data }: { date: Date; data: PanchangamDa
 }
 
 function PanchangamDayButton({ day, modifiers, className, children: _children, ...props }: ComponentProps<typeof DayButton>) {
+  const { i18n } = useTranslation()
   const ctx = useContext(CalendarDataContext)
   const key = dateToKey(day.date)
   const dateData = ctx?.monthData?.[key]
@@ -114,7 +115,7 @@ function PanchangamDayButton({ day, modifiers, className, children: _children, .
       </p>
       <div className={cn("flex items-baseline justify-between w-full min-w-0 gap-1 pb-1 px-1 mt-auto", isNeighbouringMonth && "opacity-40")}>
         <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-muted-foreground shrink-0">{dateData?.kv.kv_day}</p>
-        <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-right truncate">{dateData?.nakshatra.ml}</p>
+        <p className="text-[8px] lg:text-[14px] leading-tight font-semibold text-right truncate">{dateData ? localizedName(dateData.nakshatra, i18n.language) : undefined}</p>
       </div>
     </CalendarDayButton>
   )

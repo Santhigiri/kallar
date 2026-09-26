@@ -2,6 +2,7 @@ import type { SunriseSunsetData } from "@/features/day-details/schemas/sunriseSu
 import { sunriseSunsetData, sunriseSunsetRangeData } from "@/features/day-details/schemas/sunriseSunset"
 import { readSunriseSunsetCache, writeSunriseSunsetCache } from "@/features/day-details/api/sunriseSunsetCache"
 import { dateToKey } from "@/lib/date"
+import { envelope } from "@/lib/http/apiEnvelope"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
 
@@ -60,7 +61,7 @@ export async function getSunriseSunsetRange(
     longitude: String(longitude),
   })
 
-  const response = await fetch(`${APP_BASE_URL}/api/v1/panchangam/sunrise-sunset/range?${params}`, {
+  const response = await fetch(`${APP_BASE_URL}/api/v2/panchangam/sunrise-sunset/range?${params}`, {
     headers: { Accept: "application/json" },
   })
 
@@ -69,7 +70,7 @@ export async function getSunriseSunsetRange(
   }
 
   const json = await response.json()
-  const data = sunriseSunsetRangeData.parse(json)
+  const data = envelope(sunriseSunsetRangeData).parse(json)
 
   await Promise.all(
     Object.entries(data.results).map(([dayKey, value]) =>

@@ -24,7 +24,7 @@ export default function ThithiTransitionCard({ transitions, current_thithi, time
         // Timezone abbreviation shown once, on the trailing end time only —
         // repeating it on both ends of the range reads as noise.
         timeRange={`${getFormattedDateTime(transition.start_time, timeZone)} - ${getFormattedDateTime(transition.end_time, timeZone, true, timeZoneAbbreviation)}`}
-        isCurrent={transition.thithi.en === current_thithi.en}
+        isCurrent={transition.thithi.id === current_thithi.id}
       />
     ))
   )

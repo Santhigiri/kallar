@@ -23,7 +23,7 @@ export function NakshatraTransitionCard({ transitions, current_nakshatra, timeZo
         // Timezone abbreviation shown once, on the trailing end time only —
         // repeating it on both ends of the range reads as noise.
         timeRange={`${getFormattedDateTime(transition.start_time, timeZone)} - ${getFormattedDateTime(transition.end_time, timeZone, true, timeZoneAbbreviation)}`}
-        isCurrent={transition.nakshatra.en === current_nakshatra.en}
+        isCurrent={transition.nakshatra.id === current_nakshatra.id}
       />
     ))
   )

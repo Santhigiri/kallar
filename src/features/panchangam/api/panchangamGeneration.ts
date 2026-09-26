@@ -3,6 +3,7 @@ import * as z from "zod"
 import { compactPanchangamData, panchangamGenerateLine } from "../schemas/compactPanchangamData"
 import type { PanchangamGenerateProgress, panchangamGenerateResult } from "../schemas/compactPanchangamData"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
+import { envelope } from "@/lib/http/apiEnvelope"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 
@@ -20,7 +21,7 @@ function dateKey(date: Date) {
 
 export async function getPanchangamMonth(year: number, month: number, location: string): Promise<CompactPanchangamMonth> {
   const response = await fetch(
-    `${APP_BASE_URL}/api/v1/panchangam/month?year=${year}&month=${month}&location=${location}`,
+    `${APP_BASE_URL}/api/v2/panchangam/month?year=${year}&month=${month}&location=${location}`,
     {
       method: "GET",
       headers: { Accept: "application/json" },
@@ -32,7 +33,7 @@ export async function getPanchangamMonth(year: number, month: number, location: 
   }
 
   const json = await response.json()
-  return compactPanchangamMonth.parseAsync(json)
+  return envelope(compactPanchangamMonth).parseAsync(json)
 }
 
 export function getPanchangamYear(
@@ -41,9 +42,9 @@ export function getPanchangamYear(
   onBackgroundUpdate?: (data: CompactPanchangamYear) => void
 ): Promise<CompactPanchangamYear> {
   return fetchWithEtag(
-    `${APP_BASE_URL}/api/v1/panchangam/year?year=${year}&location=${location}`,
+    `${APP_BASE_URL}/api/v2/panchangam/year?year=${year}&location=${location}`,
     `year:${location}:${year}`,
-    compactPanchangamYear,
+    envelope(compactPanchangamYear),
     { onBackgroundUpdate }
   )
 }

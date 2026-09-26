@@ -4,9 +4,11 @@ import type {
   Masa,
   Nakshatra,
   PanchangamDayData,
+  ReferenceTranslation,
   SanthigiriSignificance,
   Thithi,
 } from "@/features/panchangam/schemas/panchangamData"
+import { localizedName } from "@/lib/utils"
 
 export type ReferenceMaps = {
   nakshatraByName: Map<string, Nakshatra>
@@ -15,8 +17,15 @@ export type ReferenceMaps = {
   eventById: Map<string, SanthigiriEvent>
 }
 
+function fallbackTranslations(code: string): Array<ReferenceTranslation> {
+  return [
+    { language_code: "en", text: code },
+    { language_code: "ml", text: code },
+  ]
+}
+
 function nakshatraOrFallback(map: Map<string, Nakshatra>, code: string): Nakshatra {
-  return map.get(code) ?? { name: code, id: 0, ml: code, en: code }
+  return map.get(code) ?? { name: code, id: 0, translations: fallbackTranslations(code) }
 }
 
 function thithiOrFallback(map: Map<string, Thithi>, code: string): Thithi {
@@ -24,15 +33,15 @@ function thithiOrFallback(map: Map<string, Thithi>, code: string): Thithi {
     map.get(code) ?? {
       name: code,
       id: 0,
-      ml: code,
-      en: code,
-      paksha: { name: code, id: 0, ml: code, en: code },
+      day: 0,
+      translations: fallbackTranslations(code),
+      paksha: { name: code, id: 0, translations: fallbackTranslations(code) },
     }
   )
 }
 
 function masaOrFallback(map: Map<string, Masa>, code: string): Masa {
-  return map.get(code) ?? { name: code, id: 0, ml: code, en: code }
+  return map.get(code) ?? { name: code, id: 0, translations: fallbackTranslations(code) }
 }
 
 function eventOrFallback(map: Map<string, SanthigiriEvent>, id: string): SanthigiriSignificance {
@@ -52,8 +61,8 @@ export function enrichPanchangamDay(
       kv_day: compact.kv.kv_day,
       kv_month: masaInfo.id,
       kv_year: compact.kv.kv_year,
-      kv_month_name_en: masaInfo.en,
-      kv_month_name_ml: masaInfo.ml,
+      kv_month_name_en: localizedName(masaInfo, "en"),
+      kv_month_name_ml: localizedName(masaInfo, "ml"),
     },
     nakshatra: nakshatraOrFallback(refs.nakshatraByName, compact.nakshatra),
     thithi: thithiOrFallback(refs.thithiByName, compact.thithi),

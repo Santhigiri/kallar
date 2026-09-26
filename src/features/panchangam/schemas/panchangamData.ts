@@ -7,11 +7,20 @@ const isoDatetime = z.string().refine((val) => {
 export type ISODatetime = z.infer<typeof isoDatetime>
 
 
+// v2 reference endpoints (features/reference/router_v2.py) return every
+// language as a row in `translations` rather than fixed `ml`/`en` columns —
+// see `localizedName` in @/lib/utils for picking the active-language text.
+export const referenceTranslation = z.object({
+  language_code: z.string(),
+  text: z.string(),
+})
+
+export type ReferenceTranslation = z.infer<typeof referenceTranslation>
+
 export const nakshatra = z.object({
   name: z.string(),
   id: z.number().int(),
-  ml: z.string(),
-  en: z.string()
+  translations: z.array(referenceTranslation),
 })
 
 export type Nakshatra = z.infer<typeof nakshatra>
@@ -19,8 +28,7 @@ export type Nakshatra = z.infer<typeof nakshatra>
 export const masa = z.object({
   name: z.string(),
   id: z.number().int(),
-  ml: z.string(),
-  en: z.string()
+  translations: z.array(referenceTranslation),
 })
 
 export type Masa = z.infer<typeof masa>
@@ -28,16 +36,17 @@ export type Masa = z.infer<typeof masa>
 export const paksha = z.object({
   name: z.string(),
   id: z.number().int(),
-  ml: z.string(),
-  en: z.string()
+  translations: z.array(referenceTranslation),
 })
+
+export type Paksha = z.infer<typeof paksha>
 
 export const thithi = z.object({
   name: z.string(),
   paksha: paksha,
   id: z.number().int(),
-  en: z.string(),
-  ml: z.string()
+  day: z.number().int(),
+  translations: z.array(referenceTranslation),
 })
 
 export type Thithi = z.infer<typeof thithi>

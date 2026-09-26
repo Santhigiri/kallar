@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const { role } = useAuth()
   const isAdmin = isAtLeast(role, "ADMIN")
 
-  // Every /api/v1/settings endpoint requires admin, including reads, so
+  // Every /api/v2/settings endpoint requires admin, including reads, so
   // there's nothing to fetch (or show) for anyone else.
   const { data, isLoading, isError } = useAppSettings(isAdmin)
   const settingsByKey = new Map((data ?? []).map((setting) => [setting.key, setting]))

@@ -8,10 +8,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Panchangam domain values (nakshatra, thithi, paksha, masa, ...) come back
-// from the API with both an `en` and `ml` name — this picks the one matching
-// the active UI language rather than always rendering English.
-export function localizedName(item: { en: string; ml: string }, language: string): string {
-  return language === "ml" ? item.ml : item.en
+// from the v2 reference endpoints as a `translations` row per language code
+// — this picks the text matching the active UI language, falling back to
+// English, then to the untranslated enum `name` (e.g. "ASWATHI") for any
+// item the translation tables haven't been seeded for yet.
+export function localizedName(
+  item: { name: string; translations: Array<{ language_code: string; text: string }> },
+  language: string
+): string {
+  return (
+    item.translations.find((t) => t.language_code === language)?.text ??
+    item.translations.find((t) => t.language_code === "en")?.text ??
+    item.name
+  )
 }
 
 export function getFormattedDate(datetime: string): string {

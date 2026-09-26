@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next"
 import type { KollavarshamDate, Nakshatra, Thithi } from "@/features/panchangam/schemas/panchangamData"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { getFormattedTime } from "@/lib/utils"
+import { getFormattedTime, localizedName } from "@/lib/utils"
 import { dateToKey, zonedTimeToUtc } from "@/lib/date"
 
 type StarfinderResultPanelProps = {
@@ -66,15 +66,15 @@ export default function StarfinderResultPanel({
             <p className="font-inter text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
               {t("dayDetails.nakshatraLabel")}
             </p>
-            <p className="font-playfair-display text-lg font-semibold">{nakshatra.en}</p>
+            <p className="font-playfair-display text-lg font-semibold">{localizedName(nakshatra, i18n.language)}</p>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-lg bg-muted px-3 py-4 text-center">
             <MoonIcon className="h-5 w-5 text-primary" />
             <p className="font-inter text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
               {t("dayDetails.thithiLabel")}
             </p>
-            <p className="font-playfair-display text-lg font-semibold">{thithi.en}</p>
-            <p className="font-inter text-xs text-muted-foreground">{thithi.paksha.en}</p>
+            <p className="font-playfair-display text-lg font-semibold">{localizedName(thithi, i18n.language)}</p>
+            <p className="font-inter text-xs text-muted-foreground">{localizedName(thithi.paksha, i18n.language)}</p>
           </div>
         </div>
 

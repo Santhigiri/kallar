@@ -1,6 +1,7 @@
 import type { CompactPanchangamData } from "@/features/panchangam/schemas/compactPanchangamData"
 import { compactPanchangamData } from "@/features/panchangam/schemas/compactPanchangamData"
 import { dateToKey } from "@/lib/date"
+import { envelope } from "@/lib/http/apiEnvelope"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
 
@@ -19,14 +20,14 @@ export async function getPanchangamAtInstant(
     timezone,
   })
 
-  const response = await fetch(`${APP_BASE_URL}/api/v1/panchangam/instant?${params}`, {
+  const response = await fetch(`${APP_BASE_URL}/api/v2/panchangam/instant?${params}`, {
     headers: { Accept: "application/json" },
   })
 
   if (!response.ok) {
     const body = await response.json().catch(() => null)
-    throw new Error(body?.detail ?? `Failed to fetch Starfinder panchangam: ${response.status}`)
+    throw new Error(body?.data?.detail ?? body?.detail ?? `Failed to fetch Starfinder panchangam: ${response.status}`)
   }
 
-  return compactPanchangamData.parse(await response.json())
+  return envelope(compactPanchangamData).parse(await response.json())
 }

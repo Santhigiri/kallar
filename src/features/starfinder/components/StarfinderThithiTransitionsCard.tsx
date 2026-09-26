@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import type { Thithi, ThithiTransition } from "@/features/panchangam/schemas/panchangamData"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn, getFormattedDateTime } from "@/lib/utils"
+import { cn, getFormattedDateTime, localizedName } from "@/lib/utils"
 
 type StarfinderThithiTransitionsCardProps = {
   transitions: Array<ThithiTransition>
@@ -13,7 +13,7 @@ export default function StarfinderThithiTransitionsCard({
   transitions,
   currentThithi,
 }: StarfinderThithiTransitionsCardProps) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <Card className="rounded-xl py-4 gap-2">
       <CardHeader>
@@ -33,10 +33,10 @@ export default function StarfinderThithiTransitionsCard({
             {transitions.map((transition, idx) => (
               <TableRow
                 key={`thithi-${idx}`}
-                className={cn(transition.thithi.en === currentThithi.en && "bg-primary/10")}
+                className={cn(transition.thithi.id === currentThithi.id && "bg-primary/10")}
               >
-                <TableCell className="font-medium">{transition.thithi.en}</TableCell>
-                <TableCell className="text-muted-foreground">{transition.thithi.paksha.en}</TableCell>
+                <TableCell className="font-medium">{localizedName(transition.thithi, i18n.language)}</TableCell>
+                <TableCell className="text-muted-foreground">{localizedName(transition.thithi.paksha, i18n.language)}</TableCell>
                 <TableCell className="text-muted-foreground">{getFormattedDateTime(transition.start_time)}</TableCell>
                 <TableCell className="text-muted-foreground">{getFormattedDateTime(transition.end_time)}</TableCell>
               </TableRow>

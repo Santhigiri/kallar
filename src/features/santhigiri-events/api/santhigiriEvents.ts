@@ -9,6 +9,7 @@ import type {
 } from "../schemas/santhigiriEvent"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
+import { envelope } from "@/lib/http/apiEnvelope"
 
 const APP_BASE_URL = import.meta.env.VITE_APP_BASE_URL
 
@@ -29,7 +30,9 @@ export class NotFoundError extends Error {
 async function parseErrorDetail(response: Response, fallback: string) {
   try {
     const body = await response.json()
-    return typeof body.detail === "string" ? body.detail : fallback
+    // v1 errors are {detail}; v2 errors are {success, message, data: {detail}}.
+    const detail = body?.data?.detail ?? body?.detail
+    return typeof detail === "string" ? detail : fallback
   } catch {
     return fallback
   }
@@ -50,7 +53,7 @@ async function handleErrors(response: Response) {
 }
 
 export async function createSanthigiriEvent(values: SanthigiriEventFormValues) {
-  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/panchangam/events`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v2/panchangam/events`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -61,7 +64,7 @@ export async function createSanthigiriEvent(values: SanthigiriEventFormValues) {
 
   await handleErrors(response)
   const json = await response.json()
-  return santhigiriEventDetail.parseAsync(json)
+  return envelope(santhigiriEventDetail).parseAsync(json)
 }
 
 export async function updateSanthigiriEvent(
@@ -69,7 +72,7 @@ export async function updateSanthigiriEvent(
   values: Omit<SanthigiriEventFormValues, "id">
 ) {
   const response = await authorizedFetch(
-    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
+    `${APP_BASE_URL}/api/v2/panchangam/events/${encodeURIComponent(eventId)}`,
     {
       method: "PUT",
       headers: {
@@ -82,12 +85,12 @@ export async function updateSanthigiriEvent(
 
   await handleErrors(response)
   const json = await response.json()
-  return santhigiriEventDetail.parseAsync(json)
+  return envelope(santhigiriEventDetail).parseAsync(json)
 }
 
 export async function deleteSanthigiriEvent(eventId: string) {
   const response = await authorizedFetch(
-    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
+    `${APP_BASE_URL}/api/v2/panchangam/events/${encodeURIComponent(eventId)}`,
     {
       method: "DELETE",
     }
@@ -173,7 +176,7 @@ export async function downloadSanthigiriEventsCalendarIcs() {
 
 export async function getSanthigiriEvent(eventId: string) {
   const response = await fetch(
-    `${APP_BASE_URL}/api/v1/panchangam/events/${encodeURIComponent(eventId)}`,
+    `${APP_BASE_URL}/api/v2/panchangam/events/${encodeURIComponent(eventId)}`,
     {
       method: "GET",
       headers: { Accept: "application/json" },
@@ -182,5 +185,5 @@ export async function getSanthigiriEvent(eventId: string) {
 
   await handleErrors(response)
   const json = await response.json()
-  return santhigiriEventDetail.parseAsync(json)
+  return envelope(santhigiriEventDetail).parseAsync(json)
 }

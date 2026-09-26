@@ -3,6 +3,7 @@ import type { AppSetting } from "../schemas/appSettings"
 import { ForbiddenError, UnauthorizedError } from "@/lib/http/httpErrors"
 import { fetchWithEtag } from "@/lib/http/conditionalFetch"
 import { authorizedFetch } from "@/lib/http/authorizedFetch"
+import { envelope } from "@/lib/http/apiEnvelope"
 import { getAccessToken } from "@/lib/auth/tokenStore"
 import { refreshAccessToken } from "@/lib/auth/refreshAccessToken"
 
@@ -20,7 +21,9 @@ export class NotFoundError extends Error {
 async function parseErrorDetail(response: Response, fallback: string) {
   try {
     const body = await response.json()
-    return typeof body.detail === "string" ? body.detail : fallback
+    // v1 errors are {detail}; v2 errors are {success, message, data: {detail}}.
+    const detail = body?.data?.detail ?? body?.detail
+    return typeof detail === "string" ? detail : fallback
   } catch {
     return fallback
   }
@@ -37,16 +40,16 @@ async function handleErrors(response: Response) {
   }
 }
 
-// Every /api/v1/settings endpoint requires the admin role, including reads
-// (see panchangam-api's api/routes/v1/settings.py), so both attach the bearer
-// access token. The list is now ETag-validated: fetchWithEtag hands back the
-// cached value instantly (if any) and revalidates in the background via
-// onBackgroundUpdate.
+// Every /api/v2/settings endpoint requires the admin role, including reads
+// (see chandiroor's features/settings/router_v2.py), so both attach the
+// bearer access token. The list is now ETag-validated: fetchWithEtag hands
+// back the cached value instantly (if any) and revalidates in the
+// background via onBackgroundUpdate.
 export function getAppSettings(
   onBackgroundUpdate?: (data: Array<AppSetting>) => void
 ): Promise<Array<AppSetting>> {
   const token = getAccessToken()
-  return fetchWithEtag(`${APP_BASE_URL}/api/v1/settings`, APP_SETTINGS_CACHE_KEY, appSettingList, {
+  return fetchWithEtag(`${APP_BASE_URL}/api/v2/settings`, APP_SETTINGS_CACHE_KEY, envelope(appSettingList), {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     handleErrors,
     onBackgroundUpdate,
@@ -61,7 +64,7 @@ export async function updateAppSetting(
   key: string,
   value: Record<string, unknown>
 ): Promise<AppSetting> {
-  const response = await authorizedFetch(`${APP_BASE_URL}/api/v1/settings/${encodeURIComponent(key)}`, {
+  const response = await authorizedFetch(`${APP_BASE_URL}/api/v2/settings/${encodeURIComponent(key)}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -71,5 +74,5 @@ export async function updateAppSetting(
   })
   await handleErrors(response)
   const json = await response.json()
-  return appSetting.parseAsync(json)
+  return envelope(appSetting).parseAsync(json)
 }

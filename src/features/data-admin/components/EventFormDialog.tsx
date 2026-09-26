@@ -29,6 +29,7 @@ import {
   useSanthigiriEvents,
   useThithiReference,
 } from "@/features/panchangam/hooks/usePanchangamReference"
+import { localizedName } from "@/lib/utils"
 
 const NONE = "none"
 
@@ -312,7 +313,7 @@ export function EventFormDialog({
                   isLoading={nakshatraReference.isLoading}
                   options={(nakshatraReference.data ?? []).map((n) => ({
                     id: n.id,
-                    label: `${n.en} (${n.ml})`,
+                    label: `${localizedName(n, "en")} (${localizedName(n, "ml")})`,
                   }))}
                 />
               </Field>
@@ -325,7 +326,7 @@ export function EventFormDialog({
                   isLoading={thithiReference.isLoading}
                   options={(thithiReference.data ?? []).map((th) => ({
                     id: th.id,
-                    label: `${th.en} — ${th.paksha.en}`,
+                    label: `${localizedName(th, "en")} — ${localizedName(th.paksha, "en")}`,
                   }))}
                 />
               </Field>
@@ -350,7 +351,7 @@ export function EventFormDialog({
                   isLoading={masaReference.isLoading}
                   options={(masaReference.data ?? []).map((m) => ({
                     id: m.id,
-                    label: `${m.en} (${m.ml})`,
+                    label: `${localizedName(m, "en")} (${localizedName(m, "ml")})`,
                   }))}
                 />
               </Field>
@@ -384,7 +385,7 @@ export function EventFormDialog({
                   isLoading={chandraMasaReference.isLoading}
                   options={(chandraMasaReference.data ?? []).map((m) => ({
                     id: m.id,
-                    label: `${m.en} (${m.ml})`,
+                    label: `${localizedName(m, "en")} (${localizedName(m, "ml")})`,
                   }))}
                 />
               </Field>

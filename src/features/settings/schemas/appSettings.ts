@@ -12,7 +12,7 @@ export const settingKey = z.enum([
 ])
 export type SettingKey = z.infer<typeof settingKey>
 
-// Generic envelope returned by GET/PUT /api/v1/settings — mirrors
+// Generic envelope returned by GET/PUT /api/v2/settings — mirrors
 // schemas.app_setting.AppSettingRead. `value`'s shape depends on `key`; the
 // per-key models below (mirroring schemas/app_setting.py) are used by
 // individual setting cards to interpret it.

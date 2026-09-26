@@ -14,13 +14,13 @@ type ThithiNakshatraCardProps = {
 }
 
 // The transition list is chronological, so the first entry matching the
-// current thithi/nakshatra name is the one currently in effect — its
+// current thithi/nakshatra id is the one currently in effect — its
 // end_time is when it hands off to the next one ("until h:mm a").
 function currentWindowEnd<T extends { end_time: string | null }>(
-  transitions: Array<T & { name: string }>,
-  currentName: string
+  transitions: Array<T & { refId: number }>,
+  currentId: number
 ): string | null {
-  return transitions.find((t) => t.name === currentName)?.end_time ?? null
+  return transitions.find((t) => t.refId === currentId)?.end_time ?? null
 }
 
 export default function ThithiNakshatraCard({
@@ -34,12 +34,12 @@ export default function ThithiNakshatraCard({
 }: ThithiNakshatraCardProps) {
   const { t, i18n } = useTranslation()
   const thithiEnd = currentWindowEnd(
-    thithiTransitions.map((transition) => ({ ...transition, name: transition.thithi.en })),
-    thithi.en
+    thithiTransitions.map((transition) => ({ ...transition, refId: transition.thithi.id })),
+    thithi.id
   )
   const nakshatraEnd = currentWindowEnd(
-    nakshatraTransitions.map((transition) => ({ ...transition, name: transition.nakshatra.en })),
-    nakshatra.en
+    nakshatraTransitions.map((transition) => ({ ...transition, refId: transition.nakshatra.id })),
+    nakshatra.id
   )
 
   return (
